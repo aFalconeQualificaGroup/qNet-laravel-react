@@ -14,7 +14,8 @@ class TasksController extends Controller
     public function index()
     {
         $tasks = Task::paginate(15);
-        return Inertia::render("Tasks/Index", [
+        
+        return Inertia::render("Tasks/Index", props: [
             'tasks' => $tasks
         ]);
     }
@@ -24,7 +25,7 @@ class TasksController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('Tasks/Create');
     }
 
     /**

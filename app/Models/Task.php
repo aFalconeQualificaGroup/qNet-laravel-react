@@ -6,8 +6,8 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-//use Spatie\Activitylog\LogOptions;
-//use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Task extends Model
 {
@@ -20,18 +20,18 @@ class Task extends Model
     protected $casts = [
         'datatask' => 'date:d-m-Y',
         'datataskend' => 'date:d-m-Y',
-        'endtask'  => 'date:d-m-Y',
+        'endtask' => 'date:d-m-Y',
         'timetask' => 'date:H:i',
         'timetaskend' => 'date:H:i',
     ];
 
     /**
      * The attribute for Log Activity
-    */
+     */
     protected static $logUnguarded = true;
 
     protected static $ignoreChangedAttributes = ['updated_at'];
-    protected static $logAttributesToIgnore = [ 'updated_at'];
+    protected static $logAttributesToIgnore = ['updated_at'];
     protected static $logName = 'Tasks';
     protected static $logOnlyDirty = true;
     protected static $recordEvents = ['created', 'updated', 'deleted'];
@@ -47,13 +47,11 @@ class Task extends Model
 
     public function getDescriptionForEvent(string $eventName): string
     {
-        if ($eventName=='updated') {
+        if ($eventName == 'updated') {
             return "L'attività è stata aggiornata";
-        }
-        elseif ($eventName=='created'){
+        } elseif ($eventName == 'created') {
             return "Creata nuova attività";
-        }
-        else {
+        } else {
             return "L'attività è stata cancellata";
         }
     }
@@ -61,55 +59,68 @@ class Task extends Model
     /**
      * Get the assigned for the tasks.
      */
-   /* public function taskassegnati() {
+    public function taskassegnati()
+    {
         return $this->hasMany(TaskAssigned::class);
     }
 
-    public function assegnati() {
+    public function assegnati()
+    {
         return $this->hasMany(TaskAssigned::class);
     }
 
-    public function taskdocumenti() {
+    public function taskdocumenti()
+    {
         return $this->hasMany(TaskDocument::class);
     }
 
-    public function tasksubs() {
+
+    public function tasksubs()
+    {
         return $this->hasMany(TaskSub::class);
     }
 
-    public function subtasks() {
+
+    public function subtasks()
+    {
         return $this->hasMany(Task::class, 'parent_id', 'id');
     }
 
-    public function parenttask() {
+    public function parenttask()
+    {
         return $this->hasOne(Task::class, 'id', 'parent_id');
     }
 
-    public function getOpportunitaAttribute() {
+    public function getOpportunitaAttribute()
+    {
         if ($opportunity = Opportunity::find($this->opportunity_id)) {
             return $opportunity->title;
         }
     }
 
-    public function getCommessaAttribute() {
+    public function getCommessaAttribute()
+    {
         if ($order = Order::find($this->order_id)) {
             return $order->title;
         }
     }
 
-    public function getFaseAttribute() {
+    public function getFaseAttribute()
+    {
         if ($fase = Ordermilestone::find($this->ordermilestone_id)) {
             return $fase->title;
         }
     }
 
-    public function getClienteAttribute() {
+    public function getClienteAttribute()
+    {
         if ($this->customer_id && $this->customer) {
             return $this->customer->name;
         }
     }
 
-    public function getSedeAttribute() {
+    public function getSedeAttribute()
+    {
         $address = '';
         $customer_address = CompanyAddress::find($this->site_id);
         if ($customer_address) {
@@ -118,7 +129,8 @@ class Task extends Model
         return $address;
     }
 
-    public function getTypeAttribute() {
+    public function getTypeAttribute()
+    {
         switch ($this->typetask) {
             case 'T':
                 return "Task";
@@ -135,7 +147,8 @@ class Task extends Model
         }
     }
 
-    public function getLocalitaAttribute() {
+    public function getLocalitaAttribute()
+    {
         switch ($this->location) {
             case '1':
                 return "Sede CLiente";
@@ -148,67 +161,77 @@ class Task extends Model
                 break;
         }
     }
-*/
-    public function getAssegnatoAttribute() {
+
+    public function getAssegnatoAttribute()
+    {
         if ($user = User::find($this->assigned_to)) {
             return $user->name . ' ' . $user->last_name;
         }
     }
 
-    public function getCreatorAttribute() {
+    public function getCreatorAttribute()
+    {
         if ($user = User::find($this->assigned_by)) {
             return $user->name . ' ' . $user->last_name;
         }
     }
 
-    public function getUserTaskAttribute() {
+    public function getUserTaskAttribute()
+    {
         if ($user = User::find($this->user_id)) {
-            return  $user->name . ' ' . $user->last_name;
+            return $user->name . ' ' . $user->last_name;
         }
     }
 
-    /*
-    public function getIndirizzoAttribute() {
+    public function getIndirizzoAttribute()
+    {
         $ca = CompanyAddress::find($this->site_id);
         return $ca != '' ? $ca->address : '';
     }
 
-    public function getAreaAttribute() {
+    public function getAreaAttribute()
+    {
         $ar = Area::find($this->area_id);
         return $ar != '' ? $ar->nome : '';
     }
 
-    public function spazioAttivita() {
+    public function spazioAttivita()
+    {
         return $this->hasOne(SpazioAttivita::class, 'id', 'id_attivita');
     }
 
-    public function spazio() {
+    public function spazio()
+    {
         return $this->hasOne(Spazio::class, 'id', 'id_spazio');
     }
 
-    public function customer() {
+    public function customer()
+    {
         return $this->hasOne(Customer::class, 'id', 'customer_id');
     }
 
-    public function messaggiContestazione() {
+    public function messaggiContestazione()
+    {
         return $this->hasMany(MessaggioContestazione::class, 'id_task', 'id');
     }
 
-    public function operatori() {
+    public function operatori()
+    {
         return $this->hasMany(TaskAssigned::class);
     }
 
-    public function reportmod() {
+    public function reportmod()
+    {
         return $this->hasOne(Report::class);
     }
-    */
-    public function osservatore() {
+    public function osservatore()
+    {
         return $this->hasOne(User::class, 'id', 'observer');
     }
 
-    /*
-    public function taskReminder() {
+    public function taskReminder()
+    {
         return $this->hasOne(TaskReminder::class);
     }
-    */
+
 }

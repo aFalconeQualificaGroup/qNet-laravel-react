@@ -1,6 +1,4 @@
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, Link } from '@inertiajs/react';
 import {
     Table,
     TableBody,
@@ -10,15 +8,9 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import * as tasksRoutes from '@/routes/tasks';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Tasks',
-        href: '/tasks',
-    },
-];
 
 interface Task {
     id: number;
@@ -75,70 +67,85 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title="Tasks" />
-            
-            <Card>
+            <Card className=' rounded-none border-0 '>
                 <CardHeader>
                     <CardTitle>
-                        Elenco Tasks
-                        <span className="ml-2 text-sm font-normal text-muted-foreground">
-                            ({tasks.total} totali)
-                        </span>
+                        <div className='w-full flex justify-between'>
+                            <div>
+                                Elenco Tasks
+                                <span className="ml-2 text-sm font-normal text-muted-foreground">
+                                    ({tasks.total} totali)
+                                </span>
+                            </div>
+                            <div>
+                                <Link
+                                    href={tasksRoutes.create.url()}
+                                >
+                                    <Button
+                                        variant="default"
+                                    >
+                                        Crea Nuovo Task
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
+                        
+                       
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="rounded-md border">
-                        <Table>
-                            <TableHeader>
+                    
+                    <Table >
+                        <TableHeader >
+                            <TableRow>
+                                <TableHead className="w-[80px]">ID</TableHead>
+                                <TableHead>Titolo</TableHead>
+                                <TableHead>Tipo</TableHead>
+                                <TableHead>Cliente</TableHead>
+                                <TableHead>Data Inizio</TableHead>
+                                <TableHead>Data Fine</TableHead>
+                                <TableHead>Stato</TableHead>
+                                <TableHead className="text-right">Azioni</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody >
+                            {tasks.data.length === 0 ? (
                                 <TableRow>
-                                    <TableHead className="w-[80px]">ID</TableHead>
-                                    <TableHead>Titolo</TableHead>
-                                    <TableHead>Tipo</TableHead>
-                                    <TableHead>Cliente</TableHead>
-                                    <TableHead>Data Inizio</TableHead>
-                                    <TableHead>Data Fine</TableHead>
-                                    <TableHead>Stato</TableHead>
-                                    <TableHead className="text-right">Azioni</TableHead>
+                                    <TableCell colSpan={8} className="h-24 text-center">
+                                        Nessun task trovato.
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {tasks.data.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={8} className="h-24 text-center">
-                                            Nessun task trovato.
+                            ) : (
+                                tasks.data.map((task) => (
+                                    <TableRow key={task.id}>
+                                        <TableCell className="font-medium">{task.id}</TableCell>
+                                        <TableCell className="max-w-[300px] truncate">
+                                            {task.title}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant="outline">{task.typetask}</Badge>
+                                        </TableCell>
+                                        <TableCell>{task.customer_id}</TableCell>
+                                        <TableCell>{task.datatask}</TableCell>
+                                        <TableCell>{task.endtask}</TableCell>
+                                        <TableCell>{getStatusBadge(task.status)}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => router.visit(`/tasks/${task.id}`)}
+                                            >
+                                                Dettagli
+                                            </Button>
                                         </TableCell>
                                     </TableRow>
-                                ) : (
-                                    tasks.data.map((task) => (
-                                        <TableRow key={task.id}>
-                                            <TableCell className="font-medium">{task.id}</TableCell>
-                                            <TableCell className="max-w-[300px] truncate">
-                                                {task.title}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant="outline">{task.typetask}</Badge>
-                                            </TableCell>
-                                            <TableCell>{task.customer_id}</TableCell>
-                                            <TableCell>{task.datatask}</TableCell>
-                                            <TableCell>{task.endtask}</TableCell>
-                                            <TableCell>{getStatusBadge(task.status)}</TableCell>
-                                            <TableCell className="text-right">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => router.visit(`/tasks/${task.id}`)}
-                                                >
-                                                    Dettagli
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+    
                     {/* Pagination */}
                     <div className="flex items-center justify-between px-2 py-4">
                         <div className="text-sm text-muted-foreground">
@@ -183,7 +190,7 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
                     </div>
                 </CardContent>
             </Card>
-        </AppLayout>
+        </>
     );
 }
 

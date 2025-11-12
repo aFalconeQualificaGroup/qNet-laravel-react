@@ -25,7 +25,7 @@ export default function Password() {
     const currentPasswordInput = useRef<HTMLInputElement>(null);
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title="Password settings" />
 
             <SettingsLayout>
@@ -141,6 +141,6 @@ export default function Password() {
                     </Form>
                 </div>
             </SettingsLayout>
-        </AppLayout>
+        </>
     );
 }

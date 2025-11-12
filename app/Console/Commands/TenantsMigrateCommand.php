@@ -61,7 +61,7 @@ class TenantsMigrateCommand extends Command
             $options['--seed'] = true;
         }
 
-        $this->call(
+        return $this->call(
             $this->option('fresh') ? 'migrate:fresh' : 'migrate',
             $options
         );
