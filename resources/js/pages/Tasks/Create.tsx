@@ -1,57 +1,73 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { Head, router, Link, useForm, Form } from '@inertiajs/react';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+import { useState, useCallback, useEffect } from 'react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import * as tasksRoutes from '@/routes/tasks';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TaskRepeatConfig, TaskRepeatForm, TaskRepeatModal } from '@/components/generatedComponents/task-repeat';
+import { TaskRepeatConfig } from '@/components/generatedComponents/task-repeat';
 import AddTaskMonolith from '@/components/generatedComponents/task-generetor/add-task-monolith';
+import { TaskForm } from '@/components/generatedComponents/task-repeat/types';
 
 function Create() {
+    const [form, setForm] = useState<TaskForm>({
+            title: "",
+            description: "",
+            task_type: "call",
+            priority: "",
+            assignee_ids: [],
+            observer_ids: [],
+            contact_ids: [],
+            due_date: null,
+            start_date: null,
+            is_completed_task: false,
+            client_id: "",
+            collegato_id: "",
+            feedback_required: false,
+            is_private: false,
+            repeat_task: false,
+    });
+
     const [repeatConfig, setRepeatConfig] = useState<Partial<TaskRepeatConfig>>(() => ({
-        repeatType: 'none',
+        repeatType: '',
         interval: 1,
         startDate: new Date().toISOString().split('T')[0],
-        endType: 'never',
+        endType: '',
         startTime: '09:00',
         endTime: '10:00',
         workDaysOnly: false,
         excludeHolidays: false,
     }));
 
-    // Stato UI per il componente TaskRepeatForm (non parte della configurazione)
-    const [showAllOccurrences, setShowAllOccurrences] = useState(false);
-
-    // Callback memoizzate per evitare re-render
-    const handleToggleShowAll = useCallback(() => {
-        setShowAllOccurrences(prev => !prev);
-    }, []);
-
     useEffect(() => {
         console.log('repeatConfig first mount:', repeatConfig);
     }, [repeatConfig]);
 
     const { data, setData, post, processing, errors } = useForm({
-        /* Definire struttura dati da passare per creazione task */
+        form: form,
+        repeatConfig: repeatConfig,
     });
 
-    const handleTaskSubmit = (json: any) => {
-        // Logica per invio dati al server
-        console.log("Ricevuto JSON:", json);
-    }
+    // Sincronizza i dati di useForm con gli stati locali
+    useEffect(() => {
+        setData('form', form);
+    }, [form]);
 
-    function handleRepeatSubmit(e: React.FormEvent) {
-        e.preventDefault();
-        /* Logica per invio dati al server */
-        console.log('repeat config:', repeatConfig);
+    useEffect(() => {
+        setData('repeatConfig', repeatConfig);
+    }, [repeatConfig]);
+
+    const handleTaskSubmit = (taskData: TaskForm) => {
+        // Aggiorna form prima dell'invio
+        setData('form', taskData);
+        
+        // Invia i dati al backend
+        post(tasksRoutes.store.url(), {
+            onSuccess: () => {
+                console.log('Task creato con successo');
+            },
+            onError: (errors) => {
+                console.error('Errore creazione task:', errors);
+            },
+        });
     }
 
     // Memoizza la callback per evitare re-render inutili del TaskRepeatForm
@@ -66,6 +82,13 @@ function Create() {
         },
         []
     );
+
+    const handleFormDataChange = (key: keyof TaskForm, value: any) => {
+        setForm(prevForm => ({
+            ...prevForm,
+            [key]: value,
+        }));
+    }
 
     return (
          <>
@@ -93,25 +116,8 @@ function Create() {
                 </CardHeader>
                 <CardContent>
                     <div className='w-full flex'>
-                        <AddTaskMonolith onSubmit={handleTaskSubmit} repeatConfig={repeatConfig} onChangeConfig={handleTaskRepeatChange} showAllOccurrences={showAllOccurrences} onToggleShowAllOccurrences={handleToggleShowAll}/>
+                        <AddTaskMonolith onSubmit={handleTaskSubmit} repeatConfig={repeatConfig} onChangeConfig={handleTaskRepeatChange} form={form} handleFormDataChange={handleFormDataChange} />
                     </div>
-                    {/*<div className='w-full flex flex-col'>
-                        <TaskRepeatForm
-                            value={repeatConfig}
-                            onChange={handleTaskRepeatChange}
-                            showAllOccurrences={showAllOccurrences}
-                            onToggleShowAllOccurrences={handleToggleShowAll}
-                        />
-                        <Button
-                            variant={"outline"}
-                            type="submit"
-                            onClick={handleRepeatSubmit}
-                            disabled={processing}
-                            className="mt-4"
-                        >
-                            Crea Task
-                        </Button>
-                    </div>*/}
                 </CardContent>
             </Card>
         </>

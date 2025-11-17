@@ -14,6 +14,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { TaskForm } from "../task-repeat/types";
 
 type User = {
     id: number;
@@ -36,30 +37,12 @@ type Contact = {
     company?: string;
 };
 
-export type TaskForm = {
-    title: string;
-    description: string;
-    task_type: string;
-    priority: string;
-    assignee_ids: number[];
-    observer_ids: number[];
-    contact_ids: number[];
-    due_date: string | null;
-    start_date: string | null;
-    is_completed_task: boolean;
-    client_id: string;
-    collegato_id: string;
-    feedback_required: boolean;
-    is_private: boolean;
-    repeat_task: boolean;
-};
-
 type AddTaskProps = {
     onSubmit?: (json: TaskForm) => void;
     repeatConfig: Partial<TaskRepeatConfig>;
     onChangeConfig: (config: Partial<TaskRepeatConfig> | ((prev: Partial<TaskRepeatConfig>) => Partial<TaskRepeatConfig>)) => void;
-    showAllOccurrences: boolean;
-    onToggleShowAllOccurrences: () => void;
+    form: TaskForm;
+    handleFormDataChange: (key: keyof TaskForm, value: any) => void;
 };
 
 const fmtDateHuman = (d: Date | null): string => {
@@ -454,31 +437,14 @@ const UserDropdown: React.FC<{
 };
 
 /* ---------------- Main Component - REPLICA FEDELE HTML FORNITO ---------------- */
-export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig, showAllOccurrences, onToggleShowAllOccurrences }: AddTaskProps) {
-    const [form, setForm] = useState<TaskForm>({
-        title: "",
-        description: "",
-        task_type: "todo",
-        priority: "normal",
-        assignee_ids: [],
-        observer_ids: [],
-        contact_ids: [],
-        due_date: null,
-        start_date: null,
-        is_completed_task: false,
-        client_id: "",
-        collegato_id: "",
-        feedback_required: false,
-        is_private: false,
-        repeat_task: false,
-    });
-
+export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig, form, handleFormDataChange }: AddTaskProps) {
+   
     useEffect(() => {
         console.log(form)
         setExpandedSections(prev => ({ ...prev, ripeti: form.repeat_task }));
     }, [form]);
 
-    const setField = <K extends keyof TaskForm>(key: K, value: TaskForm[K]) => setForm((prev) => ({ ...prev, [key]: value }));
+    const setField = <K extends keyof TaskForm>(key: K, value: TaskForm[K]) => handleFormDataChange(key, value);
 
     // Stati UI
     const [titleFocused, setTitleFocused] = useState(false);
@@ -1120,8 +1086,6 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                                 <TaskRepeatForm
                                     value={repeatConfig}
                                     onChange={onChangeConfig}
-                                    showAllOccurrences={showAllOccurrences}
-                                    onToggleShowAllOccurrences={onToggleShowAllOccurrences}
                                 />
                             </div>
                         </div>
@@ -1133,7 +1097,7 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                     <Button type="button" variant="destructive" className="rounded-button">
                         Annulla
                     </Button>
-                    <Button type="submit" className="rounded-button">
+                    <Button  type="submit" className="rounded-button">
                         Aggiungi
                     </Button>
                 </div>

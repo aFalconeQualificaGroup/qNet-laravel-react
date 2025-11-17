@@ -13,6 +13,7 @@ class TasksController extends Controller
      */
     public function index()
     {
+        /* Logica custom */
         $tasks = Task::paginate(15);
         
         return Inertia::render("Tasks/Index", props: [
@@ -33,7 +34,8 @@ class TasksController extends Controller
      */
     public function store(Request $request)
     {   
-        
+        dd($request->all());
+
     }
 
     /**
