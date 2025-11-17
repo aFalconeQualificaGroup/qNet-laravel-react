@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
 import { Calendar, Clock, Repeat } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -26,8 +26,6 @@ export interface TaskRepeatFormProps {
       | ((prev: Partial<TaskRepeatConfig>) => Partial<TaskRepeatConfig>)
   ) => void;
   className?: string;
-  showAllOccurrences?: boolean;
-  onToggleShowAllOccurrences?: () => void;
 }
 
 // ============================================================================
@@ -38,12 +36,9 @@ export const TaskRepeatForm: React.FC<TaskRepeatFormProps> = ({
   value,
   onChange,
   className,
-  showAllOccurrences = false,
-  onToggleShowAllOccurrences = () => {},
 }) => {
-  // Memoized calculations
-  const nextOccurrences = useMemo(() => calculateOccurrences(value), [value]);
-  const summary = useMemo(() => getRepeatSummary(value), [value]);
+
+  console.log('🔄 TaskRepeatForm RENDER', { value });
 
   // Update a config value - memoized to avoid re-creating function on each render
   const updateConfig = useCallback(
@@ -60,7 +55,7 @@ export const TaskRepeatForm: React.FC<TaskRepeatFormProps> = ({
           <Repeat className="h-5 w-5 text-primary" />
           Configurazione Ripetizione
         </h3>
-        <p className="text-sm text-muted-foreground">{summary}</p>
+        <p className="text-sm text-muted-foreground">{}</p>
       </div>
 
       <div className="space-y-6">
@@ -342,11 +337,9 @@ export const TaskRepeatForm: React.FC<TaskRepeatFormProps> = ({
 
             {/* Preview */}
             <OccurrencePreview
-              occurrences={nextOccurrences}
+              config={value}
               startTime={value.startTime || '09:00'}
               endTime={value.endTime || '10:00'}
-              showAll={showAllOccurrences}
-              onToggleShowAll={onToggleShowAllOccurrences}
             />
           </>
         )}

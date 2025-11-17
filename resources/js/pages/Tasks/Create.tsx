@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Head, router, Link, useForm, Form } from '@inertiajs/react';
+import { Head, router, Link } from '@inertiajs/react';
 import {
     Table,
     TableBody,
@@ -26,21 +26,11 @@ function Create() {
         excludeHolidays: false,
     }));
 
-    // Stato UI per il componente TaskRepeatForm (non parte della configurazione)
-    const [showAllOccurrences, setShowAllOccurrences] = useState(false);
-
-    // Callback memoizzate per evitare re-render
-    const handleToggleShowAll = useCallback(() => {
-        setShowAllOccurrences(prev => !prev);
-    }, []);
-
     useEffect(() => {
         console.log('repeatConfig first mount:', repeatConfig);
-    }, [repeatConfig]);
+    }, []);
 
-    const { data, setData, post, processing, errors } = useForm({
-        /* Definire struttura dati da passare per creazione task */
-    });
+    const [processing, setProcessing] = useState(false);
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -55,7 +45,7 @@ function Create() {
                 | Partial<TaskRepeatConfig>
                 | ((prev: Partial<TaskRepeatConfig>) => Partial<TaskRepeatConfig>)
         ) => {
-            console.log('TaskRepeatForm new entry:', config);
+            console.log('📝 TaskRepeatForm onChange called:', config);
             setRepeatConfig(config);
         },
         []
@@ -87,23 +77,20 @@ function Create() {
                 </CardHeader>
                 <CardContent>
 
-                    <Form>
+                    <form onSubmit={handleSubmit}>
                         <TaskRepeatForm
                             value={repeatConfig}
                             onChange={handleTaskRepeatChange}
-                            showAllOccurrences={showAllOccurrences}
-                            onToggleShowAllOccurrences={handleToggleShowAll}
                         />
                         <Button
                             variant={"outline"}
                             type="submit"
-                            onClick={handleSubmit}
                             disabled={processing}
                             className="mt-4"
                         >
                             Crea Task
                         </Button>
-                    </Form>
+                    </form>
 
                 </CardContent>
             </Card>

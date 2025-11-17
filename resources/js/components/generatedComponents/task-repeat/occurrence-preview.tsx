@@ -1,32 +1,45 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { calculateOccurrences, getRepeatSummary } from './utils';
+import { TaskRepeatConfig } from './types';
 
 // ============================================================================
 // OCCURRENCE PREVIEW
 // ============================================================================
 
 interface OccurrencePreviewProps {
-  occurrences: Date[];
+  config: Partial<TaskRepeatConfig>;
   startTime: string;
   endTime: string;
-  showAll: boolean;
-  onToggleShowAll: () => void;
+ 
 }
 
-export const OccurrencePreview: React.FC<OccurrencePreviewProps> = ({
-  occurrences,
+export const OccurrencePreview: React.FC<OccurrencePreviewProps> = React.memo(({
+  config,
   startTime,
   endTime,
-  showAll,
-  onToggleShowAll,
 }) => {
-  const displayCount = showAll ? occurrences.length : Math.min(10, occurrences.length);
+  
+  console.log('🔄 OccurrencePreview RENDER', { config, startTime, endTime });
+  
+  const [showAll, setShowAll] = useState(false);
 
-  if (occurrences.length === 0) return null;
+  const onToggleShowAll = () => {
+    console.log('🔘 Toggle showAll:', !showAll);
+    setShowAll((prev) => !prev);
+  };
+
+   // Memoized calculations
+  const nextOccurrences = useMemo(() => calculateOccurrences(config), [config]);
+  const summary = useMemo(() => getRepeatSummary(config), [config]);
+  
+  const displayCount = showAll ? nextOccurrences.length : Math.min(10, nextOccurrences.length);
+
+  if (nextOccurrences.length === 0) return null;
 
   return (
     <Card className="p-4 bg-muted/50">
@@ -36,12 +49,12 @@ export const OccurrencePreview: React.FC<OccurrencePreviewProps> = ({
             Prossime occorrenze
           </Label>
           <Badge variant="secondary">
-            {occurrences.length} {occurrences.length === 1 ? 'occorrenza' : 'occorrenze'}
+            {nextOccurrences.length} {nextOccurrences.length === 1 ? 'occorrenza' : 'occorrenze'}
           </Badge>
         </div>
 
         <div className="max-h-64 overflow-y-auto space-y-1.5 pr-2">
-          {occurrences.slice(0, displayCount).map((date, i) => {
+          {nextOccurrences.slice(0, displayCount).map((date, i) => {
             const isToday = date.toDateString() === new Date().toDateString();
             const isWeekend = date.getDay() === 0 || date.getDay() === 6;
 
@@ -79,7 +92,7 @@ export const OccurrencePreview: React.FC<OccurrencePreviewProps> = ({
           })}
         </div>
 
-        {occurrences.length > 10 && (
+        {nextOccurrences.length > 10 && (
           <Button
             variant="ghost"
             size="sm"
@@ -88,10 +101,12 @@ export const OccurrencePreview: React.FC<OccurrencePreviewProps> = ({
           >
             {showAll
               ? 'Mostra meno'
-              : `Mostra tutte (${occurrences.length})`}
+              : `Mostra tutte (${nextOccurrences.length})`}
           </Button>
         )}
       </div>
     </Card>
   );
-};
+});
+
+OccurrencePreview.displayName = 'OccurrencePreview';
