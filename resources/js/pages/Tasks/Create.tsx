@@ -13,6 +13,7 @@ import * as tasksRoutes from '@/routes/tasks';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TaskRepeatConfig, TaskRepeatForm, TaskRepeatModal } from '@/components/generatedComponents/task-repeat';
+import AddTaskMonolith from '@/components/generatedComponents/task-generetor/add-task-monolith';
 
 function Create() {
     const [repeatConfig, setRepeatConfig] = useState<Partial<TaskRepeatConfig>>(() => ({
@@ -30,9 +31,16 @@ function Create() {
         console.log('repeatConfig first mount:', repeatConfig);
     }, []);
 
-    const [processing, setProcessing] = useState(false);
+    const { data, setData, post, processing, errors } = useForm({
+        /* Definire struttura dati da passare per creazione task */
+    });
 
-    function handleSubmit(e: React.FormEvent) {
+    const handleTaskSubmit = (json: any) => {
+        // Logica per invio dati al server
+        console.log("Ricevuto JSON:", json);
+    }
+
+    function handleRepeatSubmit(e: React.FormEvent) {
         e.preventDefault();
         /* Logica per invio dati al server */
         console.log('repeat config:', repeatConfig);
@@ -76,8 +84,10 @@ function Create() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-
-                    <form onSubmit={handleSubmit}>
+                    <div className='w-full flex'>
+                        <AddTaskMonolith onSubmit={handleTaskSubmit} repeatConfig={repeatConfig} onChangeConfig={handleTaskRepeatChange} showAllOccurrences={showAllOccurrences} onToggleShowAllOccurrences={handleToggleShowAll}/>
+                    </div>
+                    {/*<div className='w-full flex flex-col'>
                         <TaskRepeatForm
                             value={repeatConfig}
                             onChange={handleTaskRepeatChange}
@@ -85,13 +95,13 @@ function Create() {
                         <Button
                             variant={"outline"}
                             type="submit"
+                            onClick={handleRepeatSubmit}
                             disabled={processing}
                             className="mt-4"
                         >
                             Crea Task
                         </Button>
-                    </form>
-
+                    </div>*/}
                 </CardContent>
             </Card>
         </>
