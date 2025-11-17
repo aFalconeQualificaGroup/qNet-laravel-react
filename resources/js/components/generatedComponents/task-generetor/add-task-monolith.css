@@ -1,0 +1,222 @@
+/* ===== STILI CON VARIABILI TEMA SHADCN ===== */
+.rounded-button {
+  border-radius: 20px !important;
+  padding: 8px 16px;
+}
+
+.rounded-button-sm {
+  border-radius: 16px !important;
+  padding: 6px 12px;
+}
+
+.modern-input {
+  border-radius: 12px;
+  border: 2px solid hsl(var(--border));
+  transition: all 0.2s;
+}
+
+.modern-input:focus {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.1);
+  outline: none;
+}
+
+/* Riga evidenziata quando focus sul titolo */
+.task-row-highlight {
+  background: linear-gradient(to right, hsl(var(--accent)), hsl(var(--background)));
+  border-left: 3px solid hsl(var(--primary));
+}
+
+/* Calendar grid */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  font-size: 11px;
+}
+
+.calendar-day:hover {
+  background: hsl(var(--accent));
+  transform: scale(1.1);
+}
+
+.calendar-day.selected {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-weight: bold;
+}
+
+.calendar-day.today {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+  font-weight: bold;
+  border: 2px solid hsl(var(--primary));
+}
+
+.calendar-day.disabled {
+  color: hsl(var(--muted-foreground));
+  cursor: not-allowed;
+}
+
+.quick-btn {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  transition: all 0.2s;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.quick-btn:hover {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+}
+
+.time-slot {
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: hsl(var(--muted));
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  font-size: 10px;
+}
+
+.time-slot:hover {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.time-slot.selected {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+/* User dropdown styles */
+.user-selected {
+  background: hsl(var(--accent)) !important;
+  border-left: 3px solid hsl(var(--primary));
+}
+
+.user-avatar-selected {
+  border: 2px solid hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--primary));
+}
+
+/* Priority dropdown compact */
+.priority-option {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.priority-option:hover {
+  background: hsl(var(--accent));
+}
+
+/* Preview text cliccabile */
+.preview-link {
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+}
+
+.preview-link:hover {
+  color: hsl(var(--primary));
+  text-decoration-color: hsl(var(--primary));
+}
+
+/* Freccia tra date */
+.date-arrow {
+  color: hsl(var(--muted-foreground));
+  font-size: 14px;
+  margin: 0 4px;
+}
+
+/* Sezioni compatte */
+.section-compact {
+  padding: 8px 12px;
+  background: hsl(var(--muted));
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 12px;
+}
+
+.section-compact:hover {
+  background: hsl(var(--accent));
+}
+
+/* Tab per commesse/opportunità */
+.tab-button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+}
+
+.tab-button.active-commesse {
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+}
+
+.tab-button.active-opportunita {
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+}
+
+/* X per cancellare date */
+.clear-date-btn {
+  padding: 2px;
+  margin-left: 4px;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clear-date-btn:hover {
+  color: hsl(var(--destructive));
+}
+
+/* Formattazione date/ore */
+.date-display {
+  font-size: 12px;
+}
+
+.time-display {
+  color: hsl(var(--muted-foreground));
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+/* Info utente nel dropdown */
+.user-role-info {
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+}
+
