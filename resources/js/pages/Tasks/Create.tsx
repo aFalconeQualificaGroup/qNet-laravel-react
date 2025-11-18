@@ -7,12 +7,22 @@ import { TaskRepeatConfig } from '@/components/generatedComponents/task-repeat';
 import AddTaskMonolith from '@/components/generatedComponents/task-generetor/add-task-monolith';
 import { TaskForm } from '@/components/generatedComponents/task-repeat/types';
 
-function Create() {
+export type UserType = {
+    filtered_users?: any[];
+};
+
+function Create({ filtered_users=[] }: UserType) {
+
+    useEffect(() => {
+        console.log('Filtered Users:', filtered_users);
+    }, [filtered_users]);
+
     const [form, setForm] = useState<TaskForm>({
             title: "",
             description: "",
             task_type: "call",
             priority: "",
+            note: "",
             assignee_ids: [],
             observer_ids: [],
             contact_ids: [],
@@ -55,10 +65,8 @@ function Create() {
         setData('repeatConfig', repeatConfig);
     }, [repeatConfig]);
 
-    const handleTaskSubmit = (taskData: TaskForm) => {
-        // Aggiorna form prima dell'invio
-        setData('form', taskData);
-        
+    const handleTaskSubmit = (formData: TaskForm) => {
+        setData('form', formData);
         // Invia i dati al backend
         post(tasksRoutes.store.url(), {
             onSuccess: () => {
@@ -116,7 +124,7 @@ function Create() {
                 </CardHeader>
                 <CardContent>
                     <div className='w-full flex'>
-                        <AddTaskMonolith onSubmit={handleTaskSubmit} repeatConfig={repeatConfig} onChangeConfig={handleTaskRepeatChange} form={form} handleFormDataChange={handleFormDataChange} />
+                        <AddTaskMonolith onSubmit={handleTaskSubmit} repeatConfig={repeatConfig} onChangeConfig={handleTaskRepeatChange} form={form} handleFormDataChange={handleFormDataChange} users={filtered_users} />
                     </div>
                 </CardContent>
             </Card>

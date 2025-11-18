@@ -31,6 +31,7 @@ export type TaskForm = {
     description: string;
     task_type: string;
     priority: string;
+    note: string;
     assignee_ids: number[];
     observer_ids: number[];
     contact_ids: number[];
@@ -42,4 +43,5 @@ export type TaskForm = {
     feedback_required: boolean;
     is_private: boolean;
     repeat_task: boolean;
+    documents?: File[];
 };

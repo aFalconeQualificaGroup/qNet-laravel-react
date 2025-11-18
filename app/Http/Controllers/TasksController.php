@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -24,9 +25,25 @@ class TasksController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        return Inertia::render('Tasks/Create');
+
+        if ($request->has('search_users')) {
+            $query = $request->input('search_users');
+
+            $users = User::where('name', 'like', "%{$query}%")
+                ->orWhere('email', 'like', "%{$query}%")
+                ->get();
+
+            return Inertia::render("Tasks/create", [
+                'filtered_users' => $users
+            ]);
+        }
+
+
+        return Inertia::render('Tasks/create', [
+            'filtered_users' => $users ?? []
+        ]);
     }
 
     /**

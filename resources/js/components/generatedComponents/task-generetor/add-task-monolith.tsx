@@ -3,18 +3,17 @@
 // Struttura: header gradient, riga principale, preview, sezioni espandibili, calendario compatto, dropdown utenti
 
 import React, { useEffect, useState, useRef } from "react";
-import { TaskRepeatConfig, TaskRepeatForm, TaskRepeatModal } from '@/components/generatedComponents/task-repeat';
+import { TaskRepeatConfig, TaskRepeatForm } from '@/components/generatedComponents/task-repeat';
 import "./add-task-monolith.css";
-
+import { router } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import { TaskForm } from "../task-repeat/types";
+import { UserType } from "@/pages/Tasks/create";
+import * as tasksRoutes from '@/routes/tasks';
 
 type User = {
     id: number;
@@ -43,6 +42,7 @@ type AddTaskProps = {
     onChangeConfig: (config: Partial<TaskRepeatConfig> | ((prev: Partial<TaskRepeatConfig>) => Partial<TaskRepeatConfig>)) => void;
     form: TaskForm;
     handleFormDataChange: (key: keyof TaskForm, value: any) => void;
+    users?: UserType['filtered_users'];
 };
 
 const fmtDateHuman = (d: Date | null): string => {
@@ -370,20 +370,31 @@ const CalendarCompact: React.FC<{
 
 /* ---------------- UserDropdown (multi-select controlled) - REPLICA HTML FORNITO ---------------- */
 const UserDropdown: React.FC<{
-    users: User[];
+    users: UserType['filtered_users'];
     value: number[];
     onChange: (v: number[]) => void;
     title?: string;
     showRoleCompany?: boolean;
-}> = ({ users, value, onChange, title = "Seleziona utenti", showRoleCompany = true }) => {
+    setFilter?: (v: string) => void;
+}> = ({ users, value, onChange, title = "Seleziona utenti", showRoleCompany = true, setFilter }) => {
     const [open, setOpen] = useState(false);
-    const [filter, setFilter] = useState("");
-
+    const [searchValue, setSearchValue] = useState("");
+   
     const toggle = (id: number) => {
         onChange(value.includes(id) ? value.filter((i) => i !== id) : [...value, id]);
     };
 
-    const filtered = users.filter((u) => (u.name || u.label || "").toLowerCase().includes(filter.toLowerCase()));
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        setSearchValue(val);
+        if (val.length > 2) {
+            setFilter?.(val);
+        } else if (val.length === 0) {
+            setFilter?.('');
+        }
+    };
+
+   // const filtered = users.filter((u) => (u.name || u.label || "").toLowerCase().includes(userFilterValue.toLowerCase()));
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -394,12 +405,18 @@ const UserDropdown: React.FC<{
             </PopoverTrigger>
             <PopoverContent className="w-72 p-0" align="end">
                 <div className="p-3 border-b">
-                    <Input placeholder="Cerca..." value={filter} onChange={(e) => setFilter(e.target.value)} className="text-sm" autoFocus />
+                    <Input 
+                        placeholder="Cerca..." 
+                        value={searchValue} 
+                        onChange={handleSearchChange} 
+                        className="text-sm" 
+                        autoFocus 
+                    />
                 </div>
 
                 <div className="py-2 max-h-64 overflow-y-auto">
                     <div className="px-3 py-2 text-xs font-semibold text-muted-foreground border-b">{title}</div>
-                    {filtered.map((user) => {
+                    {users.map((user) => {
                         const displayName = user.name || user.label;
                         const initials = displayName
                             ? displayName
@@ -409,6 +426,10 @@ const UserDropdown: React.FC<{
                                 .toUpperCase()
                                 .slice(0, 2)
                             : "";
+                        const displaySurname = user.last_name;
+                        const surnameInitial = displaySurname
+                        .toUpperCase()
+                        .slice(0, 1);
                         const userId = user.id;
                         const isSelected = value.includes(userId);
 
@@ -420,10 +441,10 @@ const UserDropdown: React.FC<{
                                 className={`w-full px-3 py-2 hover:bg-accent flex items-center gap-3 text-left transition-colors ${isSelected ? "user-selected" : ""}`}
                             >
                                 <div className={`w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isSelected ? "user-avatar-selected" : ""}`}>
-                                    {initials}
+                                    {initials+' '+surnameInitial}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-medium truncate">{displayName}</div>
+                                    <div className="text-sm font-medium truncate">{displayName+' '+displaySurname}</div>
                                     {showRoleCompany && (user.role || user.company) && <div className="user-role-info truncate">{[user.role, user.company].filter(Boolean).join(" - ")}</div>}
                                 </div>
                                 {isSelected && <span className="text-primary">✓</span>}
@@ -437,7 +458,7 @@ const UserDropdown: React.FC<{
 };
 
 /* ---------------- Main Component - REPLICA FEDELE HTML FORNITO ---------------- */
-export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig, form, handleFormDataChange }: AddTaskProps) {
+export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig, form, handleFormDataChange, users }: AddTaskProps) {
    
     useEffect(() => {
         console.log(form)
@@ -464,14 +485,35 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
 
     const descriptionInputRef = useRef<HTMLInputElement>(null);
 
+    const [usersFilterValue, setUsersFilterValue] = useState("");
+    
+    const handleRetriveUsersData = () => {
+        if(usersFilterValue.length > 2) {
+            router.get(
+                tasksRoutes.create.url(),
+                { search_users: usersFilterValue },
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                    only: ['filtered_users'],
+                }
+            );
+        }
+    };
+
+    useEffect(() => {
+        console.log("Filtro utenti cambiato:", usersFilterValue);
+        handleRetriveUsersData();
+    }, [usersFilterValue]);
+
     // Mock data - replace with props or fetch in real integration
-    const users: User[] = [
+   /* const users: User[] = [
         { id: 1, name: "Mario Rossi", role: "Project Manager", company: "TechCorp" },
         { id: 2, name: "Giulia Bianchi", role: "Developer", company: "TechCorp" },
         { id: 3, name: "Luca Verdi", role: "Designer", company: "DesignStudio" },
         { id: 4, name: "Anna Neri", role: "CEO", company: "StartupX" },
         { id: 5, name: "Paolo Gialli", role: "CTO", company: "StartupX" },
-    ];
+    ];*/
 
     const clients: Client[] = [
         { value: 1, label: "QUALIFICA GROUP S.r.l." },
@@ -682,10 +724,9 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
     const previewComponents = buildPreviewComponents();
 
     const handleSubmit = (e?: React.FormEvent) => {
+        console.log("Submit", form);
         e?.preventDefault();
-        const payload: TaskForm = { ...form };
-        onSubmit?.(payload);
-        console.log("TASK JSON", payload);
+        onSubmit?.(form);
     };
 
     return (
@@ -804,10 +845,10 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                             </div>
 
                             {/* Assegnatari */}
-                            <UserDropdown users={users} value={form.assignee_ids} onChange={(v) => setField("assignee_ids", v)} title="Assegnatari" />
+                            <UserDropdown users={users} value={form.assignee_ids} onChange={(v) => setField("assignee_ids", v)} title="Assegnatari" setFilter={setUsersFilterValue} />
 
                             {/* Osservatore */}
-                            <UserDropdown users={users} value={form.observer_ids} onChange={(v) => setField("observer_ids", v)} title="Osservatori" />
+                            <UserDropdown users={users} value={form.observer_ids} onChange={(v) => setField("observer_ids", v)} title="Osservatori" setFilter={setUsersFilterValue} />
                         </div>
 
                         {/* Descrizione opzionale */}
@@ -838,6 +879,7 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                             />
                         )}
 
+                       
                         {/* PREVIEW */}
                         {(previewComponents.length > 0 || !showStartDate) && (
                             <div className="text-xs text-muted-foreground pl-14 flex items-center justify-between">
@@ -1059,11 +1101,41 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
 
                     {expandedSections.documenti && (
                         <div className="border rounded-lg p-4 bg-muted">
-                            <div className="text-center text-muted-foreground text-sm">
-                                <Button type="button" size="sm">
-                                    📎 Carica documento
-                                </Button>
-                                <p className="text-xs mt-2">o trascina i file qui</p>
+                            <div className="pl-14 mt-4">
+                                <Label htmlFor="documents" className="text-xs text-muted-foreground">Documenti</Label>
+                                <Input
+                                    id="documents"
+                                    type="file"
+                                    multiple
+                                    onChange={(e) => {
+                                        const files = e.target.files;
+                                        if (files) {
+                                            setField("documents", Array.from(files));
+                                        }
+                                    }}
+                                    className="w-full pr-2 py-1 text-xs mt-1"
+                                />
+                                {form.documents && form.documents.length > 0 && (
+                                    <div className="mt-2 space-y-1">
+                                        {form.documents.map((file, idx) => (
+                                            <div key={idx} className="flex items-center justify-between text-xs p-2 bg-background rounded">
+                                                <span className="truncate">{file.name}</span>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-6 w-6 p-0"
+                                                    onClick={() => {
+                                                        const newDocs = form.documents?.filter((_, i) => i !== idx);
+                                                        setField("documents", newDocs);
+                                                    }}
+                                                >
+                                                    ×
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -1076,7 +1148,18 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
 
                     {expandedSections.note && (
                         <div className="border rounded-lg p-4 bg-muted">
-                            <div className="text-center text-muted-foreground text-sm">[Area note - verrà popolata dopo la creazione]</div>
+                             {/* Note opzionali */}
+                            <div className="pl-14">
+                                <Label htmlFor="note" className="text-xs text-muted-foreground">Note</Label>
+                                <Input
+                                    id="note"
+                                    type="text"
+                                    value={form.note || ""}
+                                    onChange={(e) => setField("note", e.target.value)}
+                                    placeholder="Aggiungi note..."
+                                    className="w-full pr-2 py-1 text-xs mt-1"
+                                />
+                            </div>
                         </div>
                     )}
 
