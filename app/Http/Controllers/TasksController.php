@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -34,15 +35,30 @@ class TasksController extends Controller
             $users = User::where('name', 'like', "%{$query}%")
                 ->orWhere('email', 'like', "%{$query}%")
                 ->get();
-
-            return Inertia::render("Tasks/create", [
-                'filtered_users' => $users
-            ]);
         }
 
+        if($request->has('search_clients')){
+            $queryClients = $request->input('search_clients');
+
+            $clients = Company::where('name', 'like', "%{$queryClients}%")
+            ->get();
+        }
+
+        if($request->has('selected_client')){
+            $clientId = $request->input('selected_client');
+
+            $client = Company::find($clientId);
+
+            /* Recupero contatti aziendali */
+            $client_contacts = $client->contacts()->get();
+        }
 
         return Inertia::render('Tasks/create', [
-            'filtered_users' => $users ?? []
+            'filtered_users' => $users ?? [],
+            'filtered_clients' => $clients ?? [],
+            'commesse_client' => $commesse_client ?? [],
+            'opportunitys_client' => $opp ?? [],
+            'contacts_client' => $client_contacts ?? [],
         ]);
     }
 

@@ -6,12 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TaskRepeatConfig } from '@/components/generatedComponents/task-repeat';
 import AddTaskMonolith from '@/components/generatedComponents/task-generetor/add-task-monolith';
 import { TaskForm } from '@/components/generatedComponents/task-repeat/types';
+import { router } from "@inertiajs/react";
 
 export type UserType = {
     filtered_users?: any[];
+    filtered_clients?: any[];
+    commesse_client?: any[];
+    opportunitys_client?: any[];
+    contacts_client?: any[];
 };
 
-function Create({ filtered_users=[] }: UserType) {
+function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], opportunitys_client=[], contacts_client=[] }: UserType) {
 
     useEffect(() => {
         console.log('Filtered Users:', filtered_users);
@@ -64,6 +69,25 @@ function Create({ filtered_users=[] }: UserType) {
     useEffect(() => {
         setData('repeatConfig', repeatConfig);
     }, [repeatConfig]);
+
+    useEffect(() => {
+        // Fai la richiesta solo se c'è effettivamente un client_id
+        if (form.client_id && form.client_id.trim() !== '') {
+            router.get(
+                tasksRoutes.create.url(),
+                { selected_client: form.client_id },
+                { 
+                    preserveState: true,
+                    preserveScroll: true,
+                    only: ['commesse_client', 'opportunitys_client', 'contacts_client'], // Ricarica solo questi dati
+                }
+            );
+        }
+    }, [form.client_id]);
+
+    useEffect(() => {
+        console.log('contacts_client changed', contacts_client);
+    }, [contacts_client]);
 
     const handleTaskSubmit = (formData: TaskForm) => {
         setData('form', formData);
@@ -124,7 +148,18 @@ function Create({ filtered_users=[] }: UserType) {
                 </CardHeader>
                 <CardContent>
                     <div className='w-full flex'>
-                        <AddTaskMonolith onSubmit={handleTaskSubmit} repeatConfig={repeatConfig} onChangeConfig={handleTaskRepeatChange} form={form} handleFormDataChange={handleFormDataChange} users={filtered_users} />
+                        <AddTaskMonolith 
+                            onSubmit={handleTaskSubmit} 
+                            repeatConfig={repeatConfig} 
+                            onChangeConfig={handleTaskRepeatChange} 
+                            form={form} 
+                            handleFormDataChange={handleFormDataChange} 
+                            users={filtered_users}
+                            clients={filtered_clients}
+                            commesse_client={commesse_client}
+                            opportunitys_client={opportunitys_client}
+                            contacts_client={contacts_client} 
+                        />
                     </div>
                 </CardContent>
             </Card>

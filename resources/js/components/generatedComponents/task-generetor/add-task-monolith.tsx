@@ -43,6 +43,10 @@ type AddTaskProps = {
     form: TaskForm;
     handleFormDataChange: (key: keyof TaskForm, value: any) => void;
     users?: UserType['filtered_users'];
+    clients?: UserType['filtered_clients'];
+    commesse_client?: UserType['commesse_client'];
+    opportunitys_client?: UserType['opportunitys_client'];
+    contacts_client?: UserType['contacts_client'];
 };
 
 const fmtDateHuman = (d: Date | null): string => {
@@ -416,18 +420,19 @@ const UserDropdown: React.FC<{
 
                 <div className="py-2 max-h-64 overflow-y-auto">
                     <div className="px-3 py-2 text-xs font-semibold text-muted-foreground border-b">{title}</div>
-                    {users.map((user) => {
+                    {users?.map((user) => {
+                        console.log('user in dropdown', user);
                         const displayName = user.name || user.label;
                         const initials = displayName
                             ? displayName
                                 .split(" ")
-                                .map((n) => n[0])
+                                .map((n: string) => n[0])
                                 .join("")
                                 .toUpperCase()
                                 .slice(0, 2)
                             : "";
                         const displaySurname = user.last_name;
-                        const surnameInitial = displaySurname
+                        const surnameInitial = (displaySurname || "")
                         .toUpperCase()
                         .slice(0, 1);
                         const userId = user.id;
@@ -444,7 +449,7 @@ const UserDropdown: React.FC<{
                                     {initials+' '+surnameInitial}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-medium truncate">{displayName+' '+displaySurname}</div>
+                                    <div className="text-sm font-medium truncate">{displaySurname != "" ? displayName+' '+displaySurname : displayName}</div>
                                     {showRoleCompany && (user.role || user.company) && <div className="user-role-info truncate">{[user.role, user.company].filter(Boolean).join(" - ")}</div>}
                                 </div>
                                 {isSelected && <span className="text-primary">✓</span>}
@@ -458,7 +463,7 @@ const UserDropdown: React.FC<{
 };
 
 /* ---------------- Main Component - REPLICA FEDELE HTML FORNITO ---------------- */
-export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig, form, handleFormDataChange, users }: AddTaskProps) {
+export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig, form, handleFormDataChange, users, clients, commesse_clients, opportunitys_clients, contacts_client  }: AddTaskProps) {
    
     useEffect(() => {
         console.log(form)
@@ -486,6 +491,7 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
     const descriptionInputRef = useRef<HTMLInputElement>(null);
 
     const [usersFilterValue, setUsersFilterValue] = useState("");
+    const [clientsFilterValue, setClientsFilterValue] = useState("");
     
     const handleRetriveUsersData = () => {
         if(usersFilterValue.length > 2) {
@@ -501,12 +507,37 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
         }
     };
 
+    const handleRetriveClientsData = () => {
+        if(clientsFilterValue.length > 2) {
+            router.get(
+                tasksRoutes.create.url(),
+                { search_clients: clientsFilterValue },
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                    only: ['filtered_clients'],
+                }
+            );
+        }
+    };
+
     useEffect(() => {
-        console.log("Filtro utenti cambiato:", usersFilterValue);
         handleRetriveUsersData();
     }, [usersFilterValue]);
 
-    // Mock data - replace with props or fetch in real integration
+    useEffect(() => {
+        if(clientsFilterValue !== "") {
+            handleRetriveClientsData();
+        }
+    }, [clientsFilterValue]);
+
+
+    useEffect(() => {
+        console.log('clients changed', clients);
+    }, [clients]);
+
+
+        // Mock data - replace with props or fetch in real integration
    /* const users: User[] = [
         { id: 1, name: "Mario Rossi", role: "Project Manager", company: "TechCorp" },
         { id: 2, name: "Giulia Bianchi", role: "Developer", company: "TechCorp" },
@@ -515,11 +546,11 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
         { id: 5, name: "Paolo Gialli", role: "CTO", company: "StartupX" },
     ];*/
 
-    const clients: Client[] = [
+    /*const clients: Client[] = [
         { value: 1, label: "QUALIFICA GROUP S.r.l." },
         { value: 2, label: "Azienda ABC" },
         { value: 3, label: "Studio Legale XYZ" },
-    ];
+    ];*/
 
     const contacts: Contact[] = [
         { value: 101, label: "Giuseppe Verdi", client_id: 1, role: "CEO", company: "QUALIFICA GROUP" },
@@ -562,7 +593,7 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
         { id: "urgent", label: "Urgente", icon: "🔴" },
     ];
 
-    const contactsForClient = contacts.filter((c) => String(c.client_id) === String(form.client_id));
+    const contactsForClient = contacts_client?.filter((c) => String(c.id) === String(form.client_id));
 
     const collegatoItems = [...commesse, ...opportunities].filter((item) => {
         const clientId = parseInt(form.client_id);
@@ -601,7 +632,7 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
     const getAssigneeNames = () => {
         return form.assignee_ids
             .map((id) => {
-                const user = users.find((u) => u.id === id);
+                const user = users?.find((u) => u.id === id);
                 return user ? user.name : "";
             })
             .filter((name) => name);
@@ -610,7 +641,7 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
     const getObserverNames = () => {
         return form.observer_ids
             .map((id) => {
-                const user = users.find((u) => u.id === id);
+                const user = users?.find((u) => u.id === id);
                 return user ? user.name : "";
             })
             .filter((name) => name);
@@ -964,6 +995,12 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
                                     <Label className="text-xs font-semibold">Cliente</Label>
+                                    <Input
+                                        type="text"
+                                        value={clientsFilterValue || ""}
+                                        placeholder="Cerca..."
+                                        onChange={(e) => setClientsFilterValue(e.target.value)}
+                                    />
                                     <Select value={form.client_id} onValueChange={(v) => {
                                         setField("client_id", v);
                                         setField("contact_ids", []);
@@ -973,9 +1010,9 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                                             <SelectValue placeholder="-- seleziona --" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {clients.map((c) => (
-                                                <SelectItem key={c.value} value={String(c.value)}>
-                                                    {c.label}
+                                            {clients?.map((c) => (
+                                                <SelectItem key={c.id} value={String(c.id)}>
+                                                    {c.name}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -986,7 +1023,7 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                                     <div>
                                         <Label className="text-xs font-semibold">Contatto</Label>
                                         <UserDropdown
-                                            users={contactsForClient.map((c) => ({ id: c.value, name: c.label, role: c.role, company: c.company }))}
+                                            users={contacts_client?.map((c) => ({ id: c.id, name: c.name, last_name: c.last_name, role: '', company: '' }))}
                                             value={form.contact_ids}
                                             onChange={(v) => setField("contact_ids", v)}
                                             title={form.contact_ids.length ? getContactNames().join(", ") : "Seleziona contatti"}
