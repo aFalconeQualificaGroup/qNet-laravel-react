@@ -38,6 +38,7 @@ type Contact = {
 
 type AddTaskProps = {
     onSubmit?: (json: TaskForm) => void;
+    onReset?: () => void;
     repeatConfig: Partial<TaskRepeatConfig>;
     onChangeConfig: (config: Partial<TaskRepeatConfig> | ((prev: Partial<TaskRepeatConfig>) => Partial<TaskRepeatConfig>)) => void;
     form: TaskForm;
@@ -79,6 +80,13 @@ const CalendarCompact: React.FC<{
             const minutes = date.getMinutes();
             setSelectedTime(`${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`);
             setHasSelectedTime(true);
+        } else {
+            // Reset quando value è null
+            setSelectedDate(null);
+            setSelectedTime("");
+            setHasSelectedTime(false);
+            setCurrentMonth(new Date().getMonth());
+            setCurrentYear(new Date().getFullYear());
         }
     }, [value]);
 
@@ -201,48 +209,48 @@ const CalendarCompact: React.FC<{
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" aria-label={label} className="rounded-button-sm">
-                    {selectedDate ? fmtDateHuman(selectedDate) : "Seleziona data"}
+                <Button variant="outline" size="sm" aria-label={label} className="rounded-button-sm border-2 hover:bg-accent">
+                    {selectedDate ? fmtDateHuman(selectedDate) : "📅 Seleziona"}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[380px] p-0" align="end">
-                <div className="bg-primary text-primary-foreground px-3 py-2 text-xs">
+            <PopoverContent className="w-[380px] p-0 shadow-xl" align="end">
+                <div className="bg-primary text-primary-foreground px-3 py-2 text-xs rounded-t-lg">
                     {selectedDate
                         ? `${selectedDate.toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" })} ${hasSelectedTime && selectedTime ? selectedTime : ""}`
                         : "Seleziona data"}
                 </div>
 
                 <div className="flex">
-                    {/* Colonna quick actions */}
+                    {/* Colonna quick actions - REPLICA HTML */}
                     <div className="w-1/3 bg-muted p-2 border-r">
                         <h4 className="text-xs font-bold text-muted-foreground mb-1">RAPIDO</h4>
                         <div className="space-y-1">
-                            <Button type="button" onClick={() => selectQuick("oggi")} variant="outline" size="sm" className="quick-btn w-full justify-start">
+                            <Button type="button" onClick={() => selectQuick("oggi")} variant="outline" size="sm" className="quick-btn w-full justify-start text-xs">
                                 📌 Oggi
                             </Button>
-                            <Button type="button" onClick={() => selectQuick("domani")} variant="outline" size="sm" className="quick-btn w-full justify-start">
+                            <Button type="button" onClick={() => selectQuick("domani")} variant="outline" size="sm" className="quick-btn w-full justify-start text-xs">
                                 ⏰ Domani
                             </Button>
-                            <Button type="button" onClick={() => selectQuick("dopodomani")} variant="outline" size="sm" className="quick-btn w-full justify-start">
+                            <Button type="button" onClick={() => selectQuick("dopodomani")} variant="outline" size="sm" className="quick-btn w-full justify-start text-xs">
                                 📆 Dopodomani
                             </Button>
-                            <Button type="button" onClick={() => selectQuick("settimana")} variant="outline" size="sm" className="quick-btn w-full justify-start">
+                            <Button type="button" onClick={() => selectQuick("settimana")} variant="outline" size="sm" className="quick-btn w-full justify-start text-xs">
                                 📊 +1 settimana
                             </Button>
-                            <Button type="button" onClick={() => selectQuick("dueset")} variant="outline" size="sm" className="quick-btn w-full justify-start">
+                            <Button type="button" onClick={() => selectQuick("dueset")} variant="outline" size="sm" className="quick-btn w-full justify-start text-xs">
                                 📈 +2 settimane
                             </Button>
-                            <Button type="button" onClick={() => selectQuick("mese")} variant="outline" size="sm" className="quick-btn w-full justify-start">
+                            <Button type="button" onClick={() => selectQuick("mese")} variant="outline" size="sm" className="quick-btn w-full justify-start text-xs">
                                 🗓️ +1 mese
                             </Button>
-                            <hr className="my-1" />
-                            <Button type="button" onClick={() => selectQuick("lunedi")} variant="outline" size="sm" className="quick-btn w-full justify-start">
+                            <hr className="my-1 border-border" />
+                            <Button type="button" onClick={() => selectQuick("lunedi")} variant="outline" size="sm" className="quick-btn w-full justify-start text-xs">
                                 🔵 Lunedì prossimo
                             </Button>
-                            <Button type="button" onClick={() => selectQuick("venerdi")} variant="outline" size="sm" className="quick-btn w-full justify-start">
+                            <Button type="button" onClick={() => selectQuick("venerdi")} variant="outline" size="sm" className="quick-btn w-full justify-start text-xs">
                                 🎉 Venerdì prossimo
                             </Button>
-                            <Button type="button" onClick={() => selectQuick("fine_mese")} variant="outline" size="sm" className="quick-btn w-full justify-start">
+                            <Button type="button" onClick={() => selectQuick("fine_mese")} variant="outline" size="sm" className="quick-btn w-full justify-start text-xs">
                                 📝 Fine mese
                             </Button>
                         </div>
@@ -317,7 +325,7 @@ const CalendarCompact: React.FC<{
                                 ))}
                             </div>
 
-                            <div className="flex gap-1">
+                            <div className="flex gap-1 items-center">
                                 <Select
                                     value={selectedTime ? selectedTime.split(":")[0] : "09"}
                                     onValueChange={(v) => {
@@ -326,7 +334,7 @@ const CalendarCompact: React.FC<{
                                         setHasSelectedTime(true);
                                     }}
                                 >
-                                    <SelectTrigger className="flex-1 h-7 text-xs">
+                                    <SelectTrigger className="flex-1 h-7 text-xs border-border">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -337,7 +345,7 @@ const CalendarCompact: React.FC<{
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <span className="flex items-center text-xs">:</span>
+                                <span className="flex items-center text-xs font-bold">:</span>
                                 <Select
                                     value={selectedTime ? selectedTime.split(":")[1] : "00"}
                                     onValueChange={(v) => {
@@ -346,7 +354,7 @@ const CalendarCompact: React.FC<{
                                         setHasSelectedTime(true);
                                     }}
                                 >
-                                    <SelectTrigger className="flex-1 h-7 text-xs">
+                                    <SelectTrigger className="flex-1 h-7 text-xs border-border">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -362,8 +370,8 @@ const CalendarCompact: React.FC<{
                     </div>
                 </div>
 
-                <div className="border-t p-2 bg-muted flex justify-end">
-                    <Button type="button" onClick={confirmSelection} size="sm">
+                <div className="border-t p-2 bg-muted flex justify-end rounded-b-lg">
+                    <Button type="button" onClick={confirmSelection} size="sm" className="rounded-button-sm bg-primary hover:bg-primary/90">
                         Conferma
                     </Button>
                 </div>
@@ -380,7 +388,8 @@ const UserDropdown: React.FC<{
     title?: string;
     showRoleCompany?: boolean;
     setFilter?: (v: string) => void;
-}> = ({ users, value, onChange, title = "Seleziona utenti", showRoleCompany = true, setFilter }) => {
+    icon?: string;
+}> = ({ users, value, onChange, title = "Seleziona utenti", showRoleCompany = true, setFilter, icon }) => {
     const [open, setOpen] = useState(false);
     const [searchValue, setSearchValue] = useState("");
    
@@ -403,23 +412,26 @@ const UserDropdown: React.FC<{
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="rounded-button-sm">
-                    {value.length ? `${value.length} selezionati` : title}
+                <Button variant="outline" size="sm" className="rounded-button-sm border-2 hover:bg-accent">
+                    {icon && <span className="text-lg">{icon}</span>}
+                    {icon && <span className="ml-1 text-xs">{title}</span>}
+                    {!icon && value.length ? `👥 ${value.length} selezionati` : !icon ? title : ''}
+                    {icon && value.length > 0 && <span className="ml-1 text-xs">({value.length})</span>}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-72 p-0" align="end">
-                <div className="p-3 border-b">
+            <PopoverContent className="w-72 p-0 shadow-xl" align="end">
+                <div className="p-3 border-b bg-muted">
                     <Input 
                         placeholder="Cerca..." 
                         value={searchValue} 
                         onChange={handleSearchChange} 
-                        className="text-sm" 
+                        className="text-sm modern-input" 
                         autoFocus 
                     />
                 </div>
 
                 <div className="py-2 max-h-64 overflow-y-auto">
-                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground border-b">{title}</div>
+                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground border-b bg-muted/50">{title}</div>
                     {users?.map((user) => {
                         console.log('user in dropdown', user);
                         const displayName = user.name || user.label;
@@ -463,11 +475,21 @@ const UserDropdown: React.FC<{
 };
 
 /* ---------------- Main Component - REPLICA FEDELE HTML FORNITO ---------------- */
-export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig, form, handleFormDataChange, users, clients, commesse_clients, opportunitys_clients, contacts_client  }: AddTaskProps) {
+export default function AddTaskMonolith({ onSubmit, onReset, repeatConfig, onChangeConfig, form, handleFormDataChange, users, clients, commesse_client, opportunitys_client, contacts_client  }: AddTaskProps) {
    
     useEffect(() => {
         console.log(form)
         setExpandedSections(prev => ({ ...prev, ripeti: form.repeat_task }));
+        
+        // Reset showStartDate se start_date è null
+        if (!form.start_date) {
+            setShowStartDate(false);
+        }
+        
+        // Reset showDescriptionInput se description è vuota
+        if (!form.description) {
+            setShowDescriptionInput(false);
+        }
     }, [form]);
 
     const setField = <K extends keyof TaskForm>(key: K, value: TaskForm[K]) => handleFormDataChange(key, value);
@@ -761,41 +783,41 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
     };
 
     return (
-        <div className="bg-background rounded-lg shadow-lg max-w-5xl mx-auto my-4 border">
+        <div className="bg-gray-50 dark:bg-gray-950 rounded-lg shadow-lg max-w-5xl mx-auto my-4 border">
             <form onSubmit={handleSubmit}>
-                {/* HEADER */}
+                {/* HEADER - BACKGROUND SCURO */}
                 <div className="px-4 py-3 border-b bg-primary text-primary-foreground rounded-t-lg flex items-center justify-between">
-                    <h2 className="text-base font-semibold">Nuovo task</h2>
+                    <h2 className="text-base font-semibold">Nuova Attività</h2>
                     <Button
                         type="button"
                         onClick={() => setField("is_completed_task", !form.is_completed_task)}
-                        variant={form.is_completed_task ? "secondary" : "default"}
+                        variant={form.is_completed_task ? "secondary" : "outline"}
                         size="sm"
-                        className="text-xs"
+                        className={`text-xs rounded-button-sm ${form.is_completed_task ? 'bg-green-500 text-white border-green-500 hover:bg-green-600!' : 'bg-white hover:bg-gray-50! text-foreground'}`}
                     >
-                        ✓ Task già completata
+                        ✔ Task già completata
                     </Button>
                 </div>
 
                 <div className="p-4 space-y-3">
-                    {/* RIGA PRINCIPALE */}
+                    {/* RIGA PRINCIPALE - REPLICA HTML FORNITO */}
                     <div className="space-y-2">
                         <div
                             className={`flex gap-2 items-center p-2 rounded-lg transition-all ${titleFocused ? "task-row-highlight" : ""}`}
                         >
-                            {/* Tipo Task */}
+                            {/* Tipo Task - con emoji come HTML */}
                             <Button
                                 type="button"
                                 onClick={handleTaskTypeToggle}
                                 variant="outline"
                                 size="sm"
-                                className="h-10 px-4 rounded-button-sm"
+                                className="h-10 px-4 rounded-button-sm border-2 hover:bg-accent"
                                 title={currentTaskType?.label}
                             >
-                                {currentTaskType?.icon}
+                                <span className="text-lg">{currentTaskType?.icon}</span>
                             </Button>
 
-                            {/* Titolo */}
+                            {/* Titolo - input senza bordi quando non in focus */}
                             <Input
                                 type="text"
                                 value={form.title}
@@ -803,7 +825,7 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                                 onFocus={() => setTitleFocused(true)}
                                 onBlur={() => setTitleFocused(false)}
                                 placeholder="Titolo del lavoro..."
-                                className="flex-1 h-10 border-0 focus-visible:ring-0 bg-transparent"
+                                className="flex-1 h-10 border-0 focus-visible:ring-0 bg-transparent text-sm font-medium"
                             />
 
                             {/* Data Inizio con X per cancellare */}
@@ -845,15 +867,16 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                                 )}
                             </div>
 
-                            {/* Priorità */}
+                            {/* Priorità - dropdown compatto come HTML */}
                             <div className="relative">
                                 <Popover open={showPriorityDropdown} onOpenChange={setShowPriorityDropdown}>
                                     <PopoverTrigger asChild>
-                                        <Button variant="outline" size="sm" className="h-10 px-4 rounded-button-sm">
-                                            {currentPriority?.icon}
+                                        <Button variant="outline" size="sm" className="h-10 px-4 rounded-button-sm border-2 hover:bg-accent">
+                                            <span className="text-lg">{currentPriority?.icon}</span>
+                                            <span className="ml-1 text-xs">Priorità</span>
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-40 p-0" align="end">
+                                    <PopoverContent className="w-40 p-1" align="end">
                                         <div className="py-1">
                                             {priorities.map((p) => (
                                                 <Button
@@ -864,9 +887,9 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                                                         setShowPriorityDropdown(false);
                                                     }}
                                                     variant="ghost"
-                                                    className="priority-option w-full justify-start"
+                                                    className="priority-option w-full justify-start text-xs hover:bg-accent"
                                                 >
-                                                    <span>{p.icon}</span>
+                                                    <span className="text-base">{p.icon}</span>
                                                     <span>{p.label}</span>
                                                 </Button>
                                             ))}
@@ -875,11 +898,11 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                                 </Popover>
                             </div>
 
-                            {/* Assegnatari */}
-                            <UserDropdown users={users} value={form.assignee_ids} onChange={(v) => setField("assignee_ids", v)} title="Assegnatari" setFilter={setUsersFilterValue} />
+                            {/* Assegnatari - con icona come HTML */}
+                            <UserDropdown users={users} value={form.assignee_ids} onChange={(v) => setField("assignee_ids", v)} title="Assegnatari" setFilter={setUsersFilterValue} icon="👥" />
 
-                            {/* Osservatore */}
-                            <UserDropdown users={users} value={form.observer_ids} onChange={(v) => setField("observer_ids", v)} title="Osservatori" setFilter={setUsersFilterValue} />
+                            {/* Osservatore - con icona come HTML */}
+                            <UserDropdown users={users} value={form.observer_ids} onChange={(v) => setField("observer_ids", v)} title="Osservatori" setFilter={setUsersFilterValue} icon="👁️" />
                         </div>
 
                         {/* Descrizione opzionale */}
@@ -937,76 +960,77 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                         )}
                     </div>
 
-                    {/* SEZIONI COMPATTE */}
+                    {/* SEZIONI COMPATTE - REPLICA HTML FORNITO */}
                     <div className="grid grid-cols-4 gap-2">
                         <Button
                             type="button"
                             onClick={() => setExpandedSections({ ...expandedSections, altro: !expandedSections.altro })}
-                            variant="ghost"
-                            className="section-compact justify-start"
+                            variant="outline"
+                            className="section-compact justify-start h-auto bg-background hover:bg-accent"
                         >
-                            <span className="flex items-center gap-1">
+                            <span className="flex items-center gap-2">
                                 <span className={`text-muted-foreground transition-transform text-xs ${expandedSections.altro ? "rotate-90" : ""}`}>▶</span>
-                                <span>Altro</span>
+                                <span className="text-xs font-medium">Altro</span>
                             </span>
                         </Button>
 
                         <Button
                             type="button"
                             onClick={() => setExpandedSections({ ...expandedSections, documenti: !expandedSections.documenti })}
-                            variant="ghost"
-                            className="section-compact justify-start"
+                            variant="outline"
+                            className="section-compact justify-start h-auto bg-background hover:bg-accent"
                         >
-                            <span className="flex items-center gap-1">
+                            <span className="flex items-center gap-2">
                                 <span className={`text-muted-foreground transition-transform text-xs ${expandedSections.documenti ? "rotate-90" : ""}`}>▶</span>
-                                📎 Documenti
+                                <span className="text-xs font-medium">📎 Documenti</span>
                             </span>
                         </Button>
 
                         <Button
                             type="button"
                             onClick={() => setExpandedSections({ ...expandedSections, sottoattivita: !expandedSections.sottoattivita })}
-                            variant="ghost"
-                            className="section-compact justify-start"
+                            variant="outline"
+                            className="section-compact justify-start h-auto bg-background hover:bg-accent"
                         >
-                            <span className="flex items-center gap-1">
+                            <span className="flex items-center gap-2">
                                 <span className={`text-muted-foreground transition-transform text-xs ${expandedSections.sottoattivita ? "rotate-90" : ""}`}>▶</span>
-                                ✅ Sottoattività
+                                <span className="text-xs font-medium">✅ Sottoattività</span>
                             </span>
                         </Button>
 
                         <Button
                             type="button"
                             onClick={() => setExpandedSections({ ...expandedSections, note: !expandedSections.note })}
-                            variant="ghost"
-                            className="section-compact justify-start"
+                            variant="outline"
+                            className="section-compact justify-start h-auto bg-background hover:bg-accent"
                         >
-                            <span className="flex items-center gap-1">
+                            <span className="flex items-center gap-2">
                                 <span className={`text-muted-foreground transition-transform text-xs ${expandedSections.note ? "rotate-90" : ""}`}>▶</span>
-                                💬 Note
+                                <span className="text-xs font-medium">💬 Note</span>
                             </span>
                         </Button>
                     </div>
 
-                    {/* CONTENUTO SEZIONI ESPANSE */}
+                    {/* CONTENUTO SEZIONI ESPANSE - REPLICA HTML FORNITO */}
                     {expandedSections.altro && (
-                        <div className="border rounded-lg p-3 bg-muted space-y-3">
+                        <div className="border rounded-lg p-3 bg-muted space-y-3 fade-in">
                             {/* Cliente e Contatto */}
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                    <Label className="text-xs font-semibold">Cliente</Label>
+                                    <Label className="text-xs font-semibold text-muted-foreground mb-1">Cliente</Label>
                                     <Input
                                         type="text"
                                         value={clientsFilterValue || ""}
                                         placeholder="Cerca..."
                                         onChange={(e) => setClientsFilterValue(e.target.value)}
+                                        className="mb-2 text-sm modern-input"
                                     />
                                     <Select value={form.client_id} onValueChange={(v) => {
                                         setField("client_id", v);
                                         setField("contact_ids", []);
                                         setField("collegato_id", "");
                                     }}>
-                                        <SelectTrigger className="w-full text-sm">
+                                        <SelectTrigger className="w-full text-sm rounded-lg">
                                             <SelectValue placeholder="-- seleziona --" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -1021,7 +1045,7 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
 
                                 {form.client_id && (
                                     <div>
-                                        <Label className="text-xs font-semibold">Contatto</Label>
+                                        <Label className="text-xs font-semibold text-muted-foreground mb-1">Contatto</Label>
                                         <UserDropdown
                                             users={contacts_client?.map((c) => ({ id: c.id, name: c.name, last_name: c.last_name, role: '', company: '' }))}
                                             value={form.contact_ids}
@@ -1032,9 +1056,14 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                                 )}
                             </div>
 
-                            {/* COMMESSE/OPPORTUNITÀ */}
+                            {/* COMMESSE/OPPORTUNITÀ - REPLICA HTML */}
                             {form.client_id && (
                                 <div className="border rounded-lg p-2 bg-background">
+                                    <div className="section-identifier">
+                                        <span>🔗</span>
+                                        <span>COLLEGATO A</span>
+                                    </div>
+                                    
                                     <div className="flex items-center justify-between mb-2">
                                         <div className="flex gap-1">
                                             <Button
@@ -1058,7 +1087,7 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                                         </div>
 
                                         <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as any)}>
-                                            <SelectTrigger className="w-32 h-7 text-xs">
+                                            <SelectTrigger className="w-32 h-7 text-xs rounded-lg">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -1073,7 +1102,7 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                                         placeholder="Cerca per codice o nome..."
                                         value={searchCommesse}
                                         onChange={(e) => setSearchCommesse(e.target.value)}
-                                        className="mb-2 text-xs"
+                                        className="mb-2 text-xs modern-input"
                                     />
 
                                     <div className="max-h-48 overflow-auto space-y-1">
@@ -1103,14 +1132,14 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                                 </div>
                             )}
 
-                            {/* Toggle buttons */}
+                            {/* Toggle buttons - stile HTML */}
                             <div className="flex gap-2">
                                 <Button
                                     type="button"
                                     onClick={() => setField("feedback_required", !form.feedback_required)}
                                     variant={form.feedback_required ? "default" : "outline"}
                                     size="sm"
-                                    className="text-xs"
+                                    className={`text-xs rounded-button-sm ${form.feedback_required ? 'bg-primary hover:bg-primary/90' : ''}`}
                                 >
                                     📝 Feedback richiesto
                                 </Button>
@@ -1119,7 +1148,7 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                                     onClick={() => setField("is_private", !form.is_private)}
                                     variant={form.is_private ? "default" : "outline"}
                                     size="sm"
-                                    className="text-xs"
+                                    className={`text-xs rounded-button-sm ${form.is_private ? 'bg-primary hover:bg-primary/90' : ''}`}
                                 >
                                     🔒 Privato
                                 </Button>
@@ -1128,7 +1157,7 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                                     onClick={() => setField("repeat_task", !form.repeat_task)}
                                     variant={form.repeat_task ? "default" : "outline"}
                                     size="sm"
-                                    className="text-xs"
+                                    className={`text-xs rounded-button-sm ${form.repeat_task ? 'bg-primary hover:bg-primary/90' : ''}`}
                                 >
                                     🔁 Ripeti
                                 </Button>
@@ -1137,9 +1166,13 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                     )}
 
                     {expandedSections.documenti && (
-                        <div className="border rounded-lg p-4 bg-muted">
-                            <div className="pl-14 mt-4">
-                                <Label htmlFor="documents" className="text-xs text-muted-foreground">Documenti</Label>
+                        <div className="border rounded-lg p-4 bg-muted fade-in">
+                            <div className="section-identifier">
+                                <span>📎</span>
+                                <span>DOCUMENTI ALLEGATI</span>
+                            </div>
+                            <div>
+                                <Label htmlFor="documents" className="text-xs text-muted-foreground">Carica file</Label>
                                 <Input
                                     id="documents"
                                     type="file"
@@ -1150,18 +1183,21 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                                             setField("documents", Array.from(files));
                                         }
                                     }}
-                                    className="w-full pr-2 py-1 text-xs mt-1"
+                                    className="w-full pr-2 py-1 text-xs mt-1 modern-input"
                                 />
                                 {form.documents && form.documents.length > 0 && (
                                     <div className="mt-2 space-y-1">
                                         {form.documents.map((file, idx) => (
-                                            <div key={idx} className="flex items-center justify-between text-xs p-2 bg-background rounded">
-                                                <span className="truncate">{file.name}</span>
+                                            <div key={idx} className="flex items-center justify-between text-xs p-2 bg-background rounded border">
+                                                <span className="truncate flex items-center gap-2">
+                                                    <span>📄</span>
+                                                    {file.name}
+                                                </span>
                                                 <Button
                                                     type="button"
                                                     variant="ghost"
                                                     size="sm"
-                                                    className="h-6 w-6 p-0"
+                                                    className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
                                                     onClick={() => {
                                                         const newDocs = form.documents?.filter((_, i) => i !== idx);
                                                         setField("documents", newDocs);
@@ -1178,30 +1214,41 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                     )}
 
                     {expandedSections.sottoattivita && (
-                        <div className="border rounded-lg p-4 bg-muted">
+                        <div className="border rounded-lg p-4 bg-muted fade-in">
+                            <div className="section-identifier">
+                                <span>✅</span>
+                                <span>SOTTOATTIVITÀ</span>
+                            </div>
                             <div className="text-center text-muted-foreground text-sm">[Qui integreremo il SubtaskManager]</div>
                         </div>
                     )}
 
                     {expandedSections.note && (
-                        <div className="border rounded-lg p-4 bg-muted">
-                             {/* Note opzionali */}
-                            <div className="pl-14">
-                                <Label htmlFor="note" className="text-xs text-muted-foreground">Note</Label>
+                        <div className="border rounded-lg p-4 bg-muted fade-in">
+                            <div className="section-identifier">
+                                <span>💬</span>
+                                <span>NOTE</span>
+                            </div>
+                            <div>
+                                <Label htmlFor="note" className="text-xs text-muted-foreground">Aggiungi note</Label>
                                 <Input
                                     id="note"
                                     type="text"
                                     value={form.note || ""}
                                     onChange={(e) => setField("note", e.target.value)}
-                                    placeholder="Aggiungi note..."
-                                    className="w-full pr-2 py-1 text-xs mt-1"
+                                    placeholder="Scrivi qui le tue note..."
+                                    className="w-full pr-2 py-1 text-xs mt-1 modern-input"
                                 />
                             </div>
                         </div>
                     )}
 
                     {expandedSections.ripeti && (
-                        <div className="border rounded-lg p-4 bg-muted">
+                        <div className="border rounded-lg p-4 bg-muted fade-in">
+                            <div className="section-identifier">
+                                <span>🔁</span>
+                                <span>RIPETI ATTIVITÀ</span>
+                            </div>
                             <div className='w-full flex flex-col'>
                                 <TaskRepeatForm
                                     value={repeatConfig}
@@ -1213,11 +1260,11 @@ export default function AddTaskMonolith({ onSubmit, repeatConfig, onChangeConfig
                 </div>
 
                 {/* Footer */}
-                <div className="px-4 py-3 border-t bg-muted flex justify-between">
-                    <Button type="button" variant="destructive" className="rounded-button">
-                        Annulla
+                <div className="px-4 py-3 border-t bg-gray-50 dark:bg-gray-900 rounded-b-lg flex justify-between">
+                    <Button type="button" variant="outline" className="rounded-button px-6" onClick={onReset}>
+                        Reset
                     </Button>
-                    <Button  type="submit" className="rounded-button">
+                    <Button type="submit" className="rounded-button px-6 bg-primary hover:bg-primary/90">
                         Aggiungi
                     </Button>
                 </div>

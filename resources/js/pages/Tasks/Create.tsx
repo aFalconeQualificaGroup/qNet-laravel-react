@@ -26,7 +26,7 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
             title: "",
             description: "",
             task_type: "call",
-            priority: "",
+            priority: "low",
             note: "",
             assignee_ids: [],
             observer_ids: [],
@@ -122,6 +122,43 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
         }));
     }
 
+    const handleReset = () => {
+        // Reset form
+        setForm({
+            title: "",
+            description: "",
+            task_type: "call",
+            priority: "",
+            note: "",
+            assignee_ids: [],
+            observer_ids: [],
+            contact_ids: [],
+            due_date: null,
+            start_date: null,
+            is_completed_task: false,
+            client_id: "",
+            collegato_id: "",
+            feedback_required: false,
+            is_private: false,
+            repeat_task: false,
+            documents: undefined,
+        });
+        
+        // Reset repeatConfig
+        setRepeatConfig({
+            repeatType: '',
+            interval: 1,
+            startDate: new Date().toISOString().split('T')[0],
+            endType: '',
+            endDate: '',
+            occurrences: 1,
+            startTime: '09:00',
+            endTime: '10:00',
+            workDaysOnly: false,
+            excludeHolidays: false,
+        });
+    }
+
     return (
          <>
             <Head title="Tasks" />
@@ -149,7 +186,8 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
                 <CardContent>
                     <div className='w-full flex'>
                         <AddTaskMonolith 
-                            onSubmit={handleTaskSubmit} 
+                            onSubmit={handleTaskSubmit}
+                            onReset={handleReset}
                             repeatConfig={repeatConfig} 
                             onChangeConfig={handleTaskRepeatChange} 
                             form={form} 
