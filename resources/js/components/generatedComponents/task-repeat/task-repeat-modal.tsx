@@ -396,10 +396,11 @@ export const TaskRepeatModal: React.FC<TaskRepeatModalProps> = ({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={onClose}>
             Annulla
           </Button>
           <Button
+            type="button"
             onClick={handleSave}
             disabled={config.repeatType === 'none'}
           >

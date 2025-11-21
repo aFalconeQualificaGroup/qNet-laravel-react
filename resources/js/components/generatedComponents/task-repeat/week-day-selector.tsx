@@ -30,6 +30,7 @@ export const WeekDaySelector: React.FC<WeekDaySelectorProps> = ({
         {WEEK_DAY_NAMES.map((day, index) => (
           <Button
             key={index}
+            type="button"
             variant={selectedDays.includes(index) ? 'default' : 'outline'}
             size="sm"
             onClick={() => toggleDay(index)}

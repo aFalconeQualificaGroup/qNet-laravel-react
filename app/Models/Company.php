@@ -127,4 +127,8 @@ class Company extends Model implements Searchable
         return $this->hasOne(User::class, 'id', 'assigned2_id');
     }
 
+    public function opportunity() {
+        return $this->hasMany(Opportunity::class, 'customer_id', 'id');
+    }
+
 }

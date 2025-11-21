@@ -44,4 +44,5 @@ export type TaskForm = {
     is_private: boolean;
     repeat_task: boolean;
     documents?: File[];
+    subtasks?: any[];
 };

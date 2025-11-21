@@ -51,6 +51,9 @@ class TasksController extends Controller
 
             /* Recupero contatti aziendali */
             $client_contacts = $client->contacts()->get();
+
+            //$commesse_client = ;
+            $opp = $client->opportunity()->get(['id', 'title', 'status']);
         }
 
         return Inertia::render('Tasks/create', [

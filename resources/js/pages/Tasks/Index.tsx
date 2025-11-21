@@ -100,7 +100,7 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
                     <Table >
                         <TableHeader >
                             <TableRow>
-                                <TableHead className="w-[80px]">ID</TableHead>
+                                <TableHead className="w-20">ID</TableHead>
                                 <TableHead>Titolo</TableHead>
                                 <TableHead>Tipo</TableHead>
                                 <TableHead>Cliente</TableHead>

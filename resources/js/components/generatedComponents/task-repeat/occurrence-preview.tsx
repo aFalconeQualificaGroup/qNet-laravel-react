@@ -94,6 +94,7 @@ export const OccurrencePreview: React.FC<OccurrencePreviewProps> = React.memo(({
 
         {nextOccurrences.length > 10 && (
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             onClick={onToggleShowAll}

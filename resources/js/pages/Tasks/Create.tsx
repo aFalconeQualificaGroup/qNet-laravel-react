@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import * as tasksRoutes from '@/routes/tasks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TaskRepeatConfig } from '@/components/generatedComponents/task-repeat';
-import AddTaskMonolith from '@/components/generatedComponents/task-generetor/add-task-monolith';
+import { AddTaskForm } from '@/components/generatedComponents/task-generator';
 import { TaskForm } from '@/components/generatedComponents/task-repeat/types';
 import { router } from "@inertiajs/react";
 
@@ -39,6 +39,7 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
             feedback_required: false,
             is_private: false,
             repeat_task: false,
+            subtasks: [],
     });
 
     const [repeatConfig, setRepeatConfig] = useState<Partial<TaskRepeatConfig>>(() => ({
@@ -142,6 +143,7 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
             is_private: false,
             repeat_task: false,
             documents: undefined,
+            subtasks: [],
         });
         
         // Reset repeatConfig
@@ -185,7 +187,7 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
                 </CardHeader>
                 <CardContent>
                     <div className='w-full flex'>
-                        <AddTaskMonolith 
+                        <AddTaskForm 
                             onSubmit={handleTaskSubmit}
                             onReset={handleReset}
                             repeatConfig={repeatConfig} 
