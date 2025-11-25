@@ -11,19 +11,10 @@ import { Button } from '@/components/ui/button';
 import * as tasksRoutes from '@/routes/tasks';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import AGGridTable from '@/components/AG-grid/agGridTable';
+import { useEffect } from 'react';
+import TaskDataParsing, { TaskDataParsingType } from '@/components/AG-grid/helper';
 
-interface Task {
-    id: number;
-    title: string;
-    description: string | null;
-    datatask: string;
-    endtask: string;
-    status: number;
-    customer_id: number;
-    assigned_to: number | null;
-    priority: number | null;
-    typetask: string;
-}
 
 interface PaginationLink {
     url: string | null;
@@ -34,7 +25,7 @@ interface PaginationLink {
 
 interface TasksPagination {
     current_page: number;
-    data: Task[];
+    data: TaskDataParsingType[];
     first_page_url: string;
     from: number;
     last_page: number;
@@ -65,6 +56,12 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
         const statusInfo = statusMap[status] || { label: 'Sconosciuto', variant: 'outline' };
         return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
     };
+
+    useEffect(() => {
+        console.log('Tasks page mounted with tasks: ', tasks);
+    }, []);
+
+    const dataForAgGrid = TaskDataParsing(tasks.data);
 
     return (
         <>
@@ -97,7 +94,7 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
                 </CardHeader>
                 <CardContent>
                     
-                    <Table >
+                   { /*<Table >
                         <TableHeader >
                             <TableRow>
                                 <TableHead className="w-20">ID</TableHead>
@@ -145,7 +142,10 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
                             )}
                         </TableBody>
                     </Table>
-    
+                     */}
+
+                    <AGGridTable entity="tasks" rowData={dataForAgGrid} />
+
                     {/* Pagination */}
                     <div className="flex items-center justify-between px-2 py-4">
                         <div className="text-sm text-muted-foreground">
