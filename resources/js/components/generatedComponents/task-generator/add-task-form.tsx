@@ -17,6 +17,7 @@ import { TaskPreview } from "./task-preview";
 import { SubtaskManager } from "./subtask-manager";
 import { AddTaskProps, Commessa } from "./types";
 import { TASK_TYPES, PRIORITIES, FILTER_STATUS_OPTIONS } from "./constants";
+import { Editor } from "@/components/blocks/editor-full/editor";
 
 export const AddTaskForm: React.FC<AddTaskProps> = ({ 
     onSubmit, 
@@ -565,6 +566,14 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                                     placeholder="Scrivi qui le tue note..."
                                     className="w-full pr-2 py-1 text-xs mt-1 modern-input"
                                 />
+                                {/* Implementiamo il componente per la creazione note con funzionalita di rich text e mentions */}
+                                
+                                <Editor
+                                    onSerializedChange={(value) => setField("note", JSON.stringify(value))}
+                                />
+                              
+                                
+                                
                             </div>
                         </div>
                     )}

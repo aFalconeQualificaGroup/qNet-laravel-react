@@ -40,6 +40,7 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
             is_private: false,
             repeat_task: false,
             subtasks: [],
+            notes: { mention: [], content: "" }
     });
 
     const [repeatConfig, setRepeatConfig] = useState<Partial<TaskRepeatConfig>>(() => ({

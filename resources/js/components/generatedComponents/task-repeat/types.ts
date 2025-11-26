@@ -45,4 +45,8 @@ export type TaskForm = {
     repeat_task: boolean;
     documents?: File[];
     subtasks?: any[];
+    notes?: {
+      mention: number[];
+      content: string;
+    }
 };
