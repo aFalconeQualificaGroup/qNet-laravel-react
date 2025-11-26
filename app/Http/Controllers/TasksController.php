@@ -16,8 +16,49 @@ class TasksController extends Controller
     public function index()
     {
         /* Logica custom */
-        $tasks = Task::paginate(15);
+        $tasks = Task::with([
+            'customer',              // Cliente (Customer) - nome
+            'order',                 // Ordine - title
+            'orderMilestone',        // Milestone ordine - title
+            'opportunity',           // Opportunità - title
+            'lead',                  // Lead
+            'contact',               // Contatto
+            'assignedByUser',        // Utente che ha assegnato - name
+            'assignedToUser',        // Utente assegnato a - name
+            'area',                  // Area - nome
+            'site',                  // Sede cliente - address
+            'spazioAttivita',        // Spazio attività
+            'spazio',                // Spazio
+            'osservatore',           // Osservatore (User)
+            'assegnati',             // Utenti assegnati (TaskAssigned)
+            'taskdocumenti',         // Documenti task (TaskDocument)
+            'tasksubs',              // Sub-tasks (TaskSub)
+            'subtasks',              // Sottoattività (Task figli)
+            'parenttask',            // Task padre
+            'messaggiContestazione', // Messaggi contestazione
+            'operatori',             // Operatori
+            'reportmod',             // Report
+            'taskReminder',          // Promemoria
+        ])->paginate(15);
         
+       /* $task = $tasks->first();
+        dd([
+            'id' => $task->id,
+            'title' => $task->title,
+            'customer' => $task->customer?->name,
+            'order' => $task->order?->title,
+            'orderMilestone' => $task->orderMilestone?->title,
+            'opportunity' => $task->opportunity?->title,
+            'contact' => $task->contact?->name,
+            'assignedBy' => $task->assignedByUser?->name . ' ' . $task->assignedByUser?->last_name,
+            'assignedTo' => $task->assignedToUser?->name . ' ' . $task->assignedToUser?->last_name,
+            'area' => $task->area?->nome ?? '',
+            'site' => $task->site?->address,
+            'spazioAttivita' => $task->spazioAttivita?->nome,
+            'observer' => $task->osservatore?->name,
+            'all_relations' => $task->relations,
+        ]);*/
+
         return Inertia::render("Tasks/Index", props: [
             'tasks' => $tasks
         ]);

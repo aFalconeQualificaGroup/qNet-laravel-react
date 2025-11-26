@@ -45,14 +45,38 @@ type TaskDataParsingType = {
     typetask: string;
     unique_key: string | null;
     updated_at: string;
+    // Relazioni
+    customer?: { id: number; name: string } | null;
+    order?: { id: number; title: string } | null;
+    order_milestone?: { id: number; title: string } | null;
+    opportunity?: { id: number; title: string } | null;
+    lead?: { id: number; name: string } | null;
+    contact?: { id: number; name: string } | null;
+    assigned_by_user?: { id: number; name: string; last_name: string } | null;
+    assigned_to_user?: { id: number; name: string; last_name: string } | null;
+    area?: { id: number; nome: string } | null;
+    site?: { id: number; address: string } | null;
+    spazio_attivita?: { id: number; nome: string } | null;
+    spazio?: { id: number; nome: string } | null;
+    osservatore?: { id: number; name: string; last_name: string } | null;
 }[];
 
-function TaskDataParsing(data: TaskDataParsingType[]) {
+function TaskDataParsing(data: any[]) {
+    
+    const formatDate = (dateString: string | null) => {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}/${month}/${day}`;
+    };
+
     return data.map(task => ({
         ID: task.id,
         Titolo: task.title,
-        Cliente: task.customer_id,
-        Contatto: task.contact_id,
+        Cliente: task.customer?.name || '-',
+        Contatto: task.contact?.name || '-',
         "Data Inizio": task.datatask,
         "Data Fine": task.datataskend,
         "Ora Inizio": task.timetask,
@@ -61,20 +85,20 @@ function TaskDataParsing(data: TaskDataParsingType[]) {
         Stato: task.status,
         Priorità: task.priority,
         "Tipo Task": task.typetask,
-        "Assegnato Da": task.assigned_by,
-        "Assegnato A": task.assigned_to,
-        Osservatore: task.observer,
+        "Assegnato Da": task.assigned_by_user ? `${task.assigned_by_user.name} ${task.assigned_by_user.last_name}` : '-',
+        "Assegnato A": task.assigned_to_user ? `${task.assigned_to_user.name} ${task.assigned_to_user.last_name}` : '-',
+        Osservatore: task.osservatore ? `${task.osservatore.name} ${task.osservatore.last_name}` : '-',
         Gruppo: task.group_id,
         "Tutto il Giorno": task.all_day,
-        Area: task.area_id,
+        Area: task.area?.nome || '-',
         "Area Interesse": task.area_interesse,
-        Opportunità: task.opportunity_id,
-        Lead: task.lead_id,
-        Ordine: task.order_id,
-        "Milestone Ordine": task.ordermilestone_id,
-        Attività: task.id_attivita,
-        Spazio: task.id_spazio,
-        Sito: task.site_id,
+        Opportunità: task.opportunity?.title || '-',
+        Lead: task.lead?.name || '-',
+        Ordine: task.order?.title || '-',
+        "Milestone Ordine": task.order_milestone?.title || '-',
+        Attività: task.spazio_attivita?.nome || '-',
+        Spazio: task.spazio?.nome || '-',
+        Sito: task.site?.address || '-',
         Posizione: task.position,
         Ubicazione: task.location,
         "Ore Stimate": task.hours_estimed,
@@ -92,8 +116,8 @@ function TaskDataParsing(data: TaskDataParsingType[]) {
         "Note Operazione": task.operation_note,
         "Video Operazione": task.operation_video,
         "Chiave Unica": task.unique_key,
-        "Data Creazione": task.created_at,
-        "Data Aggiornamento": task.updated_at,
+        "Data Creazione": formatDate(task.created_at),
+        "Data Aggiornamento": formatDate(task.updated_at),
     }));
 }
 

@@ -210,6 +210,51 @@ class Task extends Model
         return $this->hasOne(Customer::class, 'id', 'customer_id');
     }
 
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id', 'id');
+    }
+
+    public function orderMilestone()
+    {
+        return $this->belongsTo(Ordermilestone::class, 'ordermilestone_id', 'id');
+    }
+
+    public function opportunity()
+    {
+        return $this->belongsTo(Opportunity::class, 'opportunity_id', 'id');
+    }
+
+    public function lead()
+    {
+        return $this->belongsTo(Lead::class, 'lead_id', 'id');
+    }
+
+    public function contact()
+    {
+        return $this->belongsTo(Contact::class, 'contact_id', 'id');
+    }
+
+    public function assignedByUser()
+    {
+        return $this->belongsTo(User::class, 'assigned_by', 'id');
+    }
+
+    public function assignedToUser()
+    {
+        return $this->belongsTo(User::class, 'assigned_to', 'id');
+    }
+
+    public function area()
+    {
+        return $this->belongsTo(Area::class, 'area_id', 'id');
+    }
+
+    public function site()
+    {
+        return $this->belongsTo(CompanyAddress::class, 'site_id', 'id');
+    }
+
     public function messaggiContestazione()
     {
         return $this->hasMany(MessaggioContestazione::class, 'id_task', 'id');
@@ -224,6 +269,7 @@ class Task extends Model
     {
         return $this->hasOne(Report::class);
     }
+    
     public function osservatore()
     {
         return $this->hasOne(User::class, 'id', 'observer');
