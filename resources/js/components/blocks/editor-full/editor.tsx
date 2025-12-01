@@ -3,13 +3,34 @@ import {
   LexicalComposer,
 } from "@lexical/react/LexicalComposer"
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin"
-import { EditorState, SerializedEditorState } from "lexical"
+import { EditorState, SerializedEditorState, $getRoot, $createParagraphNode } from "lexical"
+import { useEffect } from "react"
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
 
 import { editorTheme } from "@/components/editor/themes/editor-theme"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
 import { nodes } from "./nodes"
 import { Plugins } from "./plugins"
+
+function ResetPlugin() {
+  const [editor] = useLexicalComposerContext()
+
+  useEffect(() => {
+    const handleReset = () => {
+      editor.update(() => {
+        const root = $getRoot()
+        root.clear()
+        root.append($createParagraphNode())
+      })
+    }
+
+    window.addEventListener('reset-rich-text-editors', handleReset)
+    return () => window.removeEventListener('reset-rich-text-editors', handleReset)
+  }, [editor])
+
+  return null
+}
 
 const editorConfig: InitialConfigType = {
   namespace: "Editor",
@@ -63,6 +84,8 @@ export function Editor({
             onCloseMentions={onCloseMentions}
             onFilterMentionUsers={onFilterMentionUsers}
           />
+
+          <ResetPlugin />
 
           <OnChangePlugin
             ignoreSelectionChange={true}

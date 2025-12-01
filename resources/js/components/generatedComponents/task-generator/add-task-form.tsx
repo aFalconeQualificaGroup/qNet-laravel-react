@@ -36,6 +36,8 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
    
     const setField = <K extends keyof typeof form>(key: K, value: typeof form[K]) => handleFormDataChange(key, value);
     const addMentionedUser = (userId: number) => {handleFormDataChange("notes.mention", userId), console.log("Aggiunto utente menzionato:", userId);};
+    const addNotesContent = (content: string) => {handleFormDataChange("notes.content", content); console.log("Aggiornato contenuto note:", content);};
+    const addNotesFullContent = (fullContent: string) => {handleFormDataChange("notes.full_content", fullContent); console.log("Aggiornato contenuto completo note:", fullContent);};
 
     useEffect(() => {
         console.log("Utente menzionato aggiunto:", form.notes?.mention);
@@ -563,20 +565,25 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                                 <span>💬</span>
                                 <span>NOTE</span>
                             </div>
-                            <div>
-                                <Label htmlFor="note" className="text-xs text-muted-foreground">Aggiungi note</Label>
-                                <Input
-                                    id="note"
-                                    type="text"
-                                    value={form.note || ""}
-                                    onChange={(e) => setField("note", e.target.value)}
-                                    placeholder="Scrivi qui le tue note..."
-                                    className="w-full pr-2 py-1 text-xs mt-1 modern-input"
-                                />
+                            <div className="w-full flex flex-col gap-4">
+                                <Label className="text-sx text-muted-foreground m-1">Aggiungi note</Label>
                                 {/* Implementiamo il componente per la creazione note con funzionalita di rich text e mentions */}
                                 
                                 <Editor
-                                    onSerializedChange={(value) => setField("note", JSON.stringify(value))}
+                                    onSerializedChange={
+                                        (value) => {
+                                            const textContent = value.root.children
+                                                .map((child: any) => {
+                                                    if (child.children && Array.isArray(child.children)) {
+                                                        return child.children.map((c: any) => c.text || '').join('')
+                                                    }
+                                                    return ''
+                                                })
+                                                .join('\n')
+                                            addNotesContent(textContent)
+                                            addNotesFullContent(JSON.stringify(value))
+                                        }
+                                    }
                                     showMentions={true}
                                     mentionUsers={users}
                                     selectedMentionUsers={form.notes?.mention || []}
@@ -584,9 +591,6 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                                     onCloseMentions={() => setShowMentionDropdown(false)}
                                     onFilterMentionUsers={setUsersFilterValue}
                                 />
-                                
-                              
-                                
                                 
                             </div>
                         </div>

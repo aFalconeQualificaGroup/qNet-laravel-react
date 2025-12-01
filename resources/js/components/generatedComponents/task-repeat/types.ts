@@ -48,5 +48,6 @@ export type TaskForm = {
     notes?: {
       mention: number[];
       content: string;
+      full_content?: string;
     }
 };

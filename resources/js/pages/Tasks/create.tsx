@@ -40,7 +40,7 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
             is_private: false,
             repeat_task: false,
             subtasks: [],
-            notes: { mention: [], content: "" }
+            notes: { mention: [], content: "", full_content: "" }
     });
 
     const [repeatConfig, setRepeatConfig] = useState<Partial<TaskRepeatConfig>>(() => ({
@@ -117,7 +117,7 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
         []
     );
 
-    const handleFormDataChange = (key: keyof TaskForm | "notes.mention", value: any) => {
+    const handleFormDataChange = (key: keyof TaskForm | "notes.mention" | "notes.content" | "notes.full_content", value: any) => {
         if (key === 'notes.mention') {
             setForm(prevForm => {
                 const currentMentions = prevForm.notes?.mention || [];
@@ -136,6 +136,29 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
             return;
         }
         
+        if( key === 'notes.content') {
+            setForm(prevForm => ({
+                ...prevForm,
+                notes: {
+                    mention: prevForm.notes?.mention || [],
+                    content: value,
+                },
+            }));
+            return;
+        }
+
+        if (key === 'notes.full_content') {
+            setForm(prevForm => ({
+                ...prevForm,
+                notes: {
+                    mention: prevForm.notes?.mention || [],
+                    content: prevForm.notes?.content || "",
+                    full_content: value,
+                },
+            }));
+            return;
+        }
+
         setForm(prevForm => ({
             ...prevForm,
             [key]: value,
@@ -178,6 +201,8 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
             workDaysOnly: false,
             excludeHolidays: false,
         });
+
+        window.dispatchEvent(new Event('reset-rich-text-editors'));
     }
 
     return (

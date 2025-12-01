@@ -64,6 +64,7 @@ import { FontSizeToolbarPlugin } from "@/components/editor/plugins/toolbar/font-
 import { MentionsToolbarPlugin } from "@/components/editor/plugins/toolbar/mentions-toolbar-plugin"
 import { SpeechToTextPlugin } from "@/components/editor/plugins/actions/speech-to-text-plugin"
 import { ActionsPlugin } from "@/components/editor/plugins/actions/actions-plugin"
+import { MentionsListPlugin } from "@/components/editor/plugins/actions/mentions-list-plugin"
 import { UserMentionedDropdown } from "@/components/generatedComponents/task-generator/userMentioned-dropdown"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -514,49 +515,18 @@ export function Plugins({
        
       {/* Azioni */}
       <ActionsPlugin>
-        <div className="clear-both flex items-center justify-between gap-2 overflow-auto border-t p-1">
+        <div className="clear-both flex items-center gap-2 border-t p-1">
           
-          <div className="flex flex-1 justify-start">
-            {/* left side action buttons */}
-            {showMentions && selectedMentionUsers && selectedMentionUsers.length > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground font-medium">Menzionati:</span>
-                <div className="flex items-center gap-1">
-                  {selectedMentionUsers.map((userId) => {
-                    const user = mentionUsers?.find(u => u.id === userId)
-                    if (!user) return null
-                    
-                    const initials = `${user.name?.[0] || ''}${user.last_name?.[0] || ''}`.toUpperCase()
-                    const fullName = `${user.name || ''} ${user.last_name || ''}`.trim()
-                    
-                    return (
-                      <div
-                        key={userId}
-                        className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-full text-xs border border-primary/20"
-                        title={fullName}
-                      >
-                        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-semibold">
-                          {initials}
-                        </div>
-                        <span className="font-medium">{fullName}</span>
-                        <button
-                          type="button"
-                          onClick={() => onSelectMentionUser?.(userId)}
-                          className="ml-1 hover:text-destructive transition-colors"
-                          title="Rimuovi menzione"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
+          {/* left side action buttons */}
+          {showMentions && (
+            <MentionsListPlugin
+              mentionUsers={mentionUsers}
+              selectedMentionUsers={selectedMentionUsers}
+              onSelectMentionUser={onSelectMentionUser}
+            />
+          )}
 
-          <div>{/* center action buttons */}</div>
-          <div className="flex flex-1 justify-end">
+          <div className="flex-shrink-0">
             {/* right side action buttons */}
             <SpeechToTextPlugin />
           </div>

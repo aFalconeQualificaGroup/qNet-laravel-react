@@ -28,13 +28,13 @@ export function MentionsToolbarPlugin({
 
   // Click sull'icona @
   const handleButtonClick = () => {
-    editor.update(() => {
+   /* editor.update(() => {
       const selection = $getSelection()
       if ($isRangeSelection(selection)) {
         // Inserisce il carattere @ nella posizione del cursore
         selection.insertText("@")
       }
-    })
+    })*/
     handleMentionTrigger()
   }
 
@@ -46,38 +46,14 @@ export function MentionsToolbarPlugin({
         // Verifica se è stato premuto il tasto @ (Shift + 2 su tastiera italiana)
         // oppure direttamente @ su tastiere internazionali
         if (event.key === "@" || (event.shiftKey && event.key === "2")) {
-          // Lascia che il carattere @ venga inserito normalmente
-          // e poi attiva la mention
-          setTimeout(() => {
-            handleMentionTrigger()
-          }, 0)
+          event.preventDefault() // Previene l'inserimento del carattere @
+          handleMentionTrigger()
+          return true // Blocca l'evento
         }
-        return false // Non blocca l'evento, permette l'inserimento del carattere
+        return false
       },
       COMMAND_PRIORITY_LOW
     )
-  }, [editor])
-
-  // Monitor per il testo inserito (alternativa più robusta)
-  useEffect(() => {
-    return editor.registerNodeTransform(TextNode, (node: TextNode) => {
-      const text = node.getTextContent()
-      
-      // Verifica se l'ultimo carattere inserito è @
-      if (text.endsWith("@")) {
-        // Delay per permettere al DOM di aggiornarsi
-        setTimeout(() => {
-          const selection = $getSelection()
-          if ($isRangeSelection(selection)) {
-            // Verifica che il cursore sia subito dopo la @
-            const anchorNode = selection.anchor.getNode()
-            if (anchorNode === node) {
-              handleMentionTrigger()
-            }
-          }
-        }, 10)
-      }
-    })
   }, [editor])
 
   return (
