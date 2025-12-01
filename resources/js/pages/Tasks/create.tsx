@@ -117,12 +117,30 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
         []
     );
 
-    const handleFormDataChange = (key: keyof TaskForm, value: any) => {
+    const handleFormDataChange = (key: keyof TaskForm | "notes.mention", value: any) => {
+        if (key === 'notes.mention') {
+            setForm(prevForm => {
+                const currentMentions = prevForm.notes?.mention || [];
+                const updatedMentions = currentMentions.includes(value)
+                    ? currentMentions.filter(id => id !== value)
+                    : [...currentMentions, value];
+                
+                return {
+                    ...prevForm,
+                    notes: {
+                        mention: updatedMentions,
+                        content: prevForm.notes?.content || "",
+                    },
+                };
+            });
+            return;
+        }
+        
         setForm(prevForm => ({
             ...prevForm,
             [key]: value,
         }));
-    }
+    };
 
     const handleReset = () => {
         // Reset form

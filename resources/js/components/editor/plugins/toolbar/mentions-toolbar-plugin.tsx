@@ -11,28 +11,19 @@ import { AtSign } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 
-export function MentionsToolbarPlugin() {
+export function MentionsToolbarPlugin({ 
+  onMentionTrigger 
+}: { 
+  onMentionTrigger?: () => void 
+} = {}) {
   const [editor] = useLexicalComposerContext()
   const [isMentionMode, setIsMentionMode] = useState(false)
 
-  // Funzione di test che verrà chiamata quando si attiva la mention
+  // Funzione che viene chiamata quando si attiva la mention
   const handleMentionTrigger = () => {
     console.log("🔔 Mention triggered!")
-    console.log("📍 Current selection:", editor.getEditorState().read(() => {
-      const selection = $getSelection()
-      if ($isRangeSelection(selection)) {
-        return {
-          anchor: selection.anchor,
-          focus: selection.focus,
-        }
-      }
-      return null
-    }))
-    
-    // TODO: Qui implementerai la logica per mostrare il menu utenti
-    // Esempio: aprire un dropdown con lista utenti
     setIsMentionMode(true)
-    alert("Mention attivata! Qui puoi implementare il menu di selezione utenti")
+    onMentionTrigger?.()
   }
 
   // Click sull'icona @

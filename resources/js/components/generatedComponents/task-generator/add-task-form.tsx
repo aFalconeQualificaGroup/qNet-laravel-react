@@ -11,6 +11,7 @@ import * as tasksRoutes from '@/routes/tasks';
 
 import { CalendarCompact } from "./calendar-compact";
 import { UserDropdown } from "./user-dropdown";
+import { UserMentionedDropdown } from "./userMentioned-dropdown";
 import { PrioritySelector } from "./priority-selector";
 import { TaskTypeButton } from "./task-type-button";
 import { TaskPreview } from "./task-preview";
@@ -34,12 +35,18 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
 }) => {
    
     const setField = <K extends keyof typeof form>(key: K, value: typeof form[K]) => handleFormDataChange(key, value);
+    const addMentionedUser = (userId: number) => {handleFormDataChange("notes.mention", userId), console.log("Aggiunto utente menzionato:", userId);};
+
+    useEffect(() => {
+        console.log("Utente menzionato aggiunto:", form.notes?.mention);
+    }, [form.notes?.mention]);
 
     // Stati UI
     const [titleFocused, setTitleFocused] = useState(false);
     const [showDescriptionInput, setShowDescriptionInput] = useState(false);
     const [showStartDate, setShowStartDate] = useState(false);
     const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
+    const [showMentionDropdown, setShowMentionDropdown] = useState(false);
     const [expandedSections, setExpandedSections] = useState({
         altro: false,
         documenti: false,
@@ -570,7 +577,14 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                                 
                                 <Editor
                                     onSerializedChange={(value) => setField("note", JSON.stringify(value))}
+                                    showMentions={true}
+                                    mentionUsers={users}
+                                    selectedMentionUsers={form.notes?.mention || []}
+                                    onSelectMentionUser={addMentionedUser}
+                                    onCloseMentions={() => setShowMentionDropdown(false)}
+                                    onFilterMentionUsers={setUsersFilterValue}
                                 />
+                                
                               
                                 
                                 
