@@ -573,8 +573,6 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                             </div>
                         </div>
                     )}
-
-                   
                 </div>
 
                 {/* Footer */}

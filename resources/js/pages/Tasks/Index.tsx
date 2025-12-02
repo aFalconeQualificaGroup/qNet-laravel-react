@@ -14,7 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AGGridTable from '@/components/AG-grid/agGridTable';
 import { useEffect } from 'react';
 import TaskDataParsing, { TaskDataParsingType } from '@/components/AG-grid/helper';
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import Kanban from '@/components/kanban-viewer/kanban';
 
 interface PaginationLink {
     url: string | null;
@@ -69,7 +70,7 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
             <Card className=' rounded-none border-0 '>
                 <CardHeader>
                     <CardTitle>
-                        <div className='w-full flex justify-between'>
+                        <div className='w-full flex justify-between items-center'>
                             <div>
                                 Elenco Tasks
                                 <span className="ml-2 text-sm font-normal text-muted-foreground">
@@ -88,63 +89,23 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
                                 </Link>
                             </div>
                         </div>
-                        
-                       
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
+                    <Tabs defaultValue="table" className="w-full">
+                        <TabsList className="mb-4">
+                            <TabsTrigger value="table">Tabella</TabsTrigger>
+                            <TabsTrigger value="kanban">Kanban</TabsTrigger>
+                        </TabsList>
                     
-                   { /*<Table >
-                        <TableHeader >
-                            <TableRow>
-                                <TableHead className="w-20">ID</TableHead>
-                                <TableHead>Titolo</TableHead>
-                                <TableHead>Tipo</TableHead>
-                                <TableHead>Cliente</TableHead>
-                                <TableHead>Data Inizio</TableHead>
-                                <TableHead>Data Fine</TableHead>
-                                <TableHead>Stato</TableHead>
-                                <TableHead className="text-right">Azioni</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody >
-                            {tasks.data.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={8} className="h-24 text-center">
-                                        Nessun task trovato.
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                tasks.data.map((task) => (
-                                    <TableRow key={task.id}>
-                                        <TableCell className="font-medium">{task.id}</TableCell>
-                                        <TableCell className="max-w-[300px] truncate">
-                                            {task.title}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant="outline">{task.typetask}</Badge>
-                                        </TableCell>
-                                        <TableCell>{task.customer_id}</TableCell>
-                                        <TableCell>{task.datatask}</TableCell>
-                                        <TableCell>{task.endtask}</TableCell>
-                                        <TableCell>{getStatusBadge(task.status)}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => router.visit(`/tasks/${task.id}`)}
-                                            >
-                                                Dettagli
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                     */}
-
-                    <AGGridTable entity="tasks" rowData={dataForAgGrid} />
+                        <TabsContent value="table">
+                            <AGGridTable entity="tasks" rowData={dataForAgGrid} />
+                        </TabsContent>
+                        
+                        <TabsContent value="kanban">
+                            <Kanban />
+                        </TabsContent>
+                    </Tabs>
 
                     {/* Pagination */}
                     <div className="flex items-center justify-between px-2 py-4">
