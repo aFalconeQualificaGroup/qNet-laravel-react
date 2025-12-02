@@ -12,6 +12,7 @@ import * as tasksRoutes from '@/routes/tasks';
 import { CalendarCompact } from "./calendar-compact";
 import { UserDropdown } from "./user-dropdown";
 import { UserMentionedDropdown } from "./userMentioned-dropdown";
+import { ClientDropdown } from "./client-dropdown";
 import { PrioritySelector } from "./priority-selector";
 import { TaskTypeButton } from "./task-type-button";
 import { TaskPreview } from "./task-preview";
@@ -46,7 +47,6 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
     // Stati UI
     const [titleFocused, setTitleFocused] = useState(false);
     const [showDescriptionInput, setShowDescriptionInput] = useState(false);
-    const [showStartDate, setShowStartDate] = useState(false);
     const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
     const [showMentionDropdown, setShowMentionDropdown] = useState(false);
     const [expandedSections, setExpandedSections] = useState({
@@ -61,15 +61,12 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
     const [searchCommesse, setSearchCommesse] = useState("");
     const [usersFilterValue, setUsersFilterValue] = useState("");
     const [clientsFilterValue, setClientsFilterValue] = useState("");
+    const [contactsFilterValue, setContactsFilterValue] = useState("");
 
     const descriptionInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         setExpandedSections(prev => ({ ...prev, ripeti: form.repeat_task }));
-        
-        if (!form.start_date) {
-            setShowStartDate(false);
-        }
         
         if (!form.description) {
             setShowDescriptionInput(false);
@@ -162,11 +159,6 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
         setField("task_type", TASK_TYPES[nextIndex].id);
     };
 
-    const clearStartDate = () => {
-        setField("start_date", null);
-        setShowStartDate(false);
-    };
-
     const clearDueDate = () => {
         setField("due_date", null);
     };
@@ -209,26 +201,6 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                                 className="flex-1 h-10 border-0 focus-visible:ring-0 bg-transparent text-sm font-medium"
                             />
 
-                            {showStartDate && (
-                                <div className="relative flex items-center gap-1">
-                                    <CalendarCompact value={form.start_date} onChange={(iso) => setField("start_date", iso)} label="Data inizio" />
-                                    {form.start_date && (
-                                        <Button
-                                            type="button"
-                                            onClick={clearStartDate}
-                                            variant="ghost"
-                                            size="sm"
-                                            className="clear-date-btn h-auto p-1"
-                                            title="Rimuovi data inizio"
-                                        >
-                                            ✕
-                                        </Button>
-                                    )}
-                                </div>
-                            )}
-
-                            {showStartDate && <span className="date-arrow">→</span>}
-
                             <div className="relative flex items-center gap-1">
                                 <CalendarCompact value={form.due_date} onChange={(iso) => setField("due_date", iso)} label="Data scadenza" />
                                 {form.due_date && (
@@ -252,6 +224,7 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                                 onOpenChange={setShowPriorityDropdown}
                             />
 
+                            {/* Assegnatari */}
                             <UserDropdown 
                                 users={users} 
                                 value={form.assignee_ids} 
@@ -261,6 +234,7 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                                 icon="👥" 
                             />
 
+                            {/* Osservatori */}
                             <UserDropdown 
                                 users={users} 
                                 value={form.observer_ids} 
@@ -303,8 +277,6 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                         <TaskPreview 
                             form={form}
                             users={users}
-                            showStartDate={showStartDate}
-                            onToggleStartDate={() => setShowStartDate(true)}
                             onTaskTypeClick={handleTaskTypeToggle}
                             onPriorityClick={() => setShowPriorityDropdown(true)}
                         />
@@ -350,36 +322,28 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
                                     <Label className="text-xs font-semibold text-muted-foreground mb-1">Cliente</Label>
-                                    <Input
-                                        type="text"
-                                        value={clientsFilterValue || ""}
-                                        placeholder="Cerca..."
-                                        onChange={(e) => setClientsFilterValue(e.target.value)}
-                                        className="mb-2 text-sm modern-input"
+                                    <ClientDropdown
+                                        clients={clients}
+                                        value={form.client_id}
+                                        onChange={(v) => {
+                                            setField("client_id", v);
+                                            setField("contact_ids", []);
+                                            setField("collegato_id", "");
+                                        }}
+                                        onFilter={setClientsFilterValue}
+                                        title="Seleziona cliente"
                                     />
-                                    <Select value={form.client_id} onValueChange={(v) => {
-                                        setField("client_id", v);
-                                        setField("contact_ids", []);
-                                        setField("collegato_id", "");
-                                    }}>
-                                        <SelectTrigger className="w-full text-sm rounded-lg">
-                                            <SelectValue placeholder="-- seleziona --" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {clients?.map((c) => (
-                                                <SelectItem key={c.id} value={String(c.id)}>
-                                                    {c.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
                                 </div>
 
                                 {form.client_id && (
                                     <div>
                                         <Label className="text-xs font-semibold text-muted-foreground mb-1">Contatto</Label>
                                         <UserDropdown
-                                            users={contacts_client?.map((c) => ({ id: c.id, name: c.name, last_name: c.last_name, role: '', company: '' }))}
+                                            users={Array.from(
+                                                new Map(
+                                                    contacts_client?.map((c) => [c.id, { id: c.id, name: c.name, last_name: c.last_name, role: '', company: '' }])
+                                                ).values()
+                                            )}
                                             value={form.contact_ids}
                                             onChange={(v) => setField("contact_ids", v)}
                                             title={"Seleziona contatti"}
@@ -493,6 +457,19 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                             </div>
                         </div>
                     )}
+                    
+                    {/* RIPETI */}
+                    {expandedSections.ripeti && expandedSections.altro && (
+                        <div className="border rounded-lg p-4 bg-muted fade-in">
+                            <div className="section-identifier">
+                                <span>🔁</span>
+                                <span>RIPETI ATTIVITÀ</span>
+                            </div>
+                            <div className='w-full flex flex-col'>
+                                <TaskRepeatForm value={repeatConfig} onChange={onChangeConfig} />
+                            </div>
+                        </div>
+                    )}
 
                     {/* DOCUMENTI */}
                     {expandedSections.documenti && (
@@ -554,6 +531,7 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                                 subtasks={form.subtasks || []}
                                 onChange={(subtasks) => setField("subtasks", subtasks)}
                                 users={users}
+                                onFilterUsers={setUsersFilterValue}
                             />
                         </div>
                     )}
@@ -596,18 +574,7 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                         </div>
                     )}
 
-                    {/* RIPETI */}
-                    {expandedSections.ripeti && (
-                        <div className="border rounded-lg p-4 bg-muted fade-in">
-                            <div className="section-identifier">
-                                <span>🔁</span>
-                                <span>RIPETI ATTIVITÀ</span>
-                            </div>
-                            <div className='w-full flex flex-col'>
-                                <TaskRepeatForm value={repeatConfig} onChange={onChangeConfig} />
-                            </div>
-                        </div>
-                    )}
+                   
                 </div>
 
                 {/* Footer */}

@@ -111,6 +111,22 @@ export function Plugins({
   const [isLink, setIsLink] = useState(false)
   const [blockType, setBlockType] = useState<keyof typeof blockTypeToBlockName>("paragraph")
   const [showMentionDropdown, setShowMentionDropdown] = useState(false)
+  const [mentionUsersCache, setMentionUsersCache] = useState<any[]>([])
+
+  // Aggiorna la cache degli utenti menzionati quando cambiano
+  useEffect(() => {
+    if (mentionUsers) {
+      setMentionUsersCache(prev => {
+        const newCache = [...prev]
+        mentionUsers.forEach(user => {
+          if (!newCache.find(u => u.id === user.id)) {
+            newCache.push(user)
+          }
+        })
+        return newCache
+      })
+    }
+  }, [mentionUsers])
 
   const onRef = (_floatingAnchorElem: HTMLDivElement) => {
     if (_floatingAnchorElem !== null) {
@@ -520,7 +536,7 @@ export function Plugins({
           {/* left side action buttons */}
           {showMentions && (
             <MentionsListPlugin
-              mentionUsers={mentionUsers}
+              mentionUsers={mentionUsersCache}
               selectedMentionUsers={selectedMentionUsers}
               onSelectMentionUser={onSelectMentionUser}
             />

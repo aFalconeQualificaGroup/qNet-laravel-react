@@ -13,10 +13,12 @@ import { TASK_TYPES, PRIORITIES } from "./constants";
 export const SubtaskManager: React.FC<SubtaskManagerProps> = ({ 
     subtasks, 
     onChange, 
-    users 
+    users,
+    onFilterUsers
 }) => {
     const [showAddForm, setShowAddForm] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const today_date = new Date().toISOString();
     const [currentSubtask, setCurrentSubtask] = useState<Subtask>({
         title: "",
         description: "",
@@ -25,7 +27,7 @@ export const SubtaskManager: React.FC<SubtaskManagerProps> = ({
         assignee_ids: [],
         observer_ids: [],
         due_date: null,
-        start_date: null,
+        start_date: today_date,
         is_completed: false,
     });
     const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
@@ -33,6 +35,7 @@ export const SubtaskManager: React.FC<SubtaskManagerProps> = ({
     const [usersFilterValue, setUsersFilterValue] = useState("");
 
     const resetForm = () => {
+        const today_date = new Date().toISOString();
         setCurrentSubtask({
             title: "",
             description: "",
@@ -41,7 +44,7 @@ export const SubtaskManager: React.FC<SubtaskManagerProps> = ({
             assignee_ids: [],
             observer_ids: [],
             due_date: null,
-            start_date: null,
+            start_date: today_date,
             is_completed: false,
         });
         setShowDescriptionInput(false);
@@ -223,12 +226,6 @@ export const SubtaskManager: React.FC<SubtaskManagerProps> = ({
                             />
 
                             <CalendarCompact 
-                                value={currentSubtask.start_date} 
-                                onChange={(iso) => setField("start_date", iso)} 
-                                label="Data inizio" 
-                            />
-
-                            <CalendarCompact 
                                 value={currentSubtask.due_date} 
                                 onChange={(iso) => setField("due_date", iso)} 
                                 label="Data scadenza" 
@@ -246,7 +243,7 @@ export const SubtaskManager: React.FC<SubtaskManagerProps> = ({
                                 value={currentSubtask.assignee_ids} 
                                 onChange={(v) => setField("assignee_ids", v)} 
                                 title="Assegnatari" 
-                                setFilter={setUsersFilterValue} 
+                                setFilter={onFilterUsers} 
                                 icon="👥" 
                             />
 
@@ -255,7 +252,7 @@ export const SubtaskManager: React.FC<SubtaskManagerProps> = ({
                                 value={currentSubtask.observer_ids} 
                                 onChange={(v) => setField("observer_ids", v)} 
                                 title="Osservatori" 
-                                setFilter={setUsersFilterValue} 
+                                setFilter={onFilterUsers} 
                                 icon="👁️" 
                             />
                         </div>

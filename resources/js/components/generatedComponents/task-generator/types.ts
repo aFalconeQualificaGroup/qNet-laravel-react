@@ -72,6 +72,7 @@ export type SubtaskManagerProps = {
     subtasks: Subtask[];
     onChange: (subtasks: Subtask[]) => void;
     users?: UserType['filtered_users'];
+    onFilterUsers?: (filter: string) => void;
 };
 
 export type { TaskForm, TaskRepeatConfig };

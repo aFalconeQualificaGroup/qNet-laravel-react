@@ -42,6 +42,13 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({
         }
     };
 
+    // Filtra gli utenti localmente in base alla ricerca
+    const filteredUsers = users?.filter(user => {
+        if (!searchValue) return true;
+        const fullName = getUserFullName(user.name || user.label, user.last_name).toLowerCase();
+        return fullName.includes(searchValue.toLowerCase());
+    });
+
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
@@ -65,34 +72,40 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({
 
                 <div className="py-2 max-h-64 overflow-y-auto">
                     <div className="px-3 py-2 text-xs font-semibold text-muted-foreground border-b bg-muted/50">{title}</div>
-                    {users?.map((user) => {
-                        const userId = user.id;
-                        const isSelected = value.includes(userId);
-                        const initials = getUserInitials(user.name || user.label, user.last_name);
-                        const fullName = getUserFullName(user.name || user.label, user.last_name);
+                    {filteredUsers?.length === 0 ? (
+                        <div className="text-center text-sm text-muted-foreground py-6">
+                            Nessun utente trovato
+                        </div>
+                    ) : (
+                        filteredUsers?.map((user) => {
+                            const userId = user.id;
+                            const isSelected = value.includes(userId);
+                            const initials = getUserInitials(user.name || user.label, user.last_name);
+                            const fullName = getUserFullName(user.name || user.label, user.last_name);
 
-                        return (
-                            <button
-                                key={userId}
-                                type="button"
-                                onClick={() => toggle(userId)}
-                                className={`w-full px-3 py-2 hover:bg-accent flex items-center gap-3 text-left transition-colors ${isSelected ? "user-selected" : ""}`}
-                            >
-                                <div className={`w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isSelected ? "user-avatar-selected" : ""}`}>
-                                    {initials}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-medium truncate">{fullName}</div>
-                                    {showRoleCompany && (user.role || user.company) && (
-                                        <div className="user-role-info truncate">
-                                            {[user.role, user.company].filter(Boolean).join(" - ")}
-                                        </div>
-                                    )}
-                                </div>
-                                {isSelected && <span className="text-primary">✓</span>}
-                            </button>
-                        );
-                    })}
+                            return (
+                                <button
+                                    key={userId}
+                                    type="button"
+                                    onClick={() => toggle(userId)}
+                                    className={`w-full px-3 py-2 hover:bg-accent flex items-center gap-3 text-left transition-colors ${isSelected ? "user-selected" : ""}`}
+                                >
+                                    <div className={`w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isSelected ? "user-avatar-selected" : ""}`}>
+                                        {initials}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-sm font-medium truncate">{fullName}</div>
+                                        {showRoleCompany && (user.role || user.company) && (
+                                            <div className="user-role-info truncate">
+                                                {[user.role, user.company].filter(Boolean).join(" - ")}
+                                            </div>
+                                        )}
+                                    </div>
+                                    {isSelected && <span className="text-primary">✓</span>}
+                                </button>
+                            );
+                        })
+                    )}
                 </div>
             </PopoverContent>
         </Popover>

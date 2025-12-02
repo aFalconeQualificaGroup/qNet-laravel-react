@@ -1,6 +1,5 @@
 // TaskPreview - Preview dei componenti task selezionati
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { TaskForm } from "./types";
 import { TASK_TYPES, PRIORITIES } from "./constants";
 import { formatDateParts } from "./utils";
@@ -9,8 +8,6 @@ import { UserType } from "@/pages/Tasks/create";
 type TaskPreviewProps = {
     form: TaskForm;
     users?: UserType['filtered_users'];
-    showStartDate: boolean;
-    onToggleStartDate: () => void;
     onTaskTypeClick: () => void;
     onPriorityClick: () => void;
 };
@@ -18,8 +15,6 @@ type TaskPreviewProps = {
 export const TaskPreview: React.FC<TaskPreviewProps> = ({
     form,
     users,
-    showStartDate,
-    onToggleStartDate,
     onTaskTypeClick,
     onPriorityClick
 }) => {
@@ -71,16 +66,6 @@ export const TaskPreview: React.FC<TaskPreviewProps> = ({
             );
         }
 
-        if (form.start_date) {
-            components.push(
-                <span key="start-date">
-                    <span className="preview-link" onClick={onToggleStartDate}>
-                        📅 Inizio: {formatDate(form.start_date)}
-                    </span>
-                </span>
-            );
-        }
-
         if (form.due_date) {
             components.push(
                 <span key="due-date">
@@ -128,7 +113,7 @@ export const TaskPreview: React.FC<TaskPreviewProps> = ({
 
     const previewComponents = buildPreviewComponents();
 
-    if (previewComponents.length === 0 && showStartDate) {
+    if (previewComponents.length === 0) {
         return null;
     }
 
@@ -142,17 +127,6 @@ export const TaskPreview: React.FC<TaskPreviewProps> = ({
                     </React.Fragment>
                 ))}
             </div>
-            {!showStartDate && (
-                <Button
-                    type="button"
-                    onClick={onToggleStartDate}
-                    variant="link"
-                    size="sm"
-                    className="text-xs h-auto p-0"
-                >
-                    + Aggiungi data inizio
-                </Button>
-            )}
         </div>
     );
 };

@@ -22,6 +22,8 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
         console.log('Filtered Users:', filtered_users);
     }, [filtered_users]);
 
+    const today_date = new Date().toISOString();
+
     const [form, setForm] = useState<TaskForm>({
             title: "",
             description: "",
@@ -32,7 +34,7 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
             observer_ids: [],
             contact_ids: [],
             due_date: null,
-            start_date: null,
+            start_date: today_date,
             is_completed_task: false,
             client_id: "",
             collegato_id: "",

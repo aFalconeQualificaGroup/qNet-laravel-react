@@ -75,6 +75,7 @@ class TasksController extends Controller
      */
     public function create(Request $request)
     {
+        
         if ($request->has('search_users')) {
             $query = $request->input('search_users');
 
@@ -116,6 +117,9 @@ class TasksController extends Controller
      */
     public function store(Request $request)
     {   
+
+        dd($request->all());
+        
         $input = $request->all();
 
         $priority = null;
