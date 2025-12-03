@@ -96,6 +96,9 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                     preserveState: true,
                     preserveScroll: true,
                     only: ['filtered_clients'],
+                    onSuccess: (response) => {
+                        console.log("Clients data retrieved:", response);
+                    }
                 }
             );
         }

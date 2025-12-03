@@ -1,4 +1,5 @@
-type TaskDataParsingType = {
+// Tipo per un singolo task dal backend
+export type OriginalTaskType = {
     all_day: any;
     area_id: number | null;
     area_interesse: any;
@@ -59,7 +60,10 @@ type TaskDataParsingType = {
     spazio_attivita?: { id: number; nome: string } | null;
     spazio?: { id: number; nome: string } | null;
     osservatore?: { id: number; name: string; last_name: string } | null;
-}[];
+};
+
+// Tipo per l'array di task dal backend (era definito male prima)
+type TaskDataParsingType = OriginalTaskType[];
 
 function TaskDataParsing(data: any[]) {
     

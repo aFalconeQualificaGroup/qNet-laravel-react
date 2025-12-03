@@ -12,10 +12,11 @@ import * as tasksRoutes from '@/routes/tasks';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AGGridTable from '@/components/AG-grid/agGridTable';
-import { useEffect } from 'react';
-import TaskDataParsing, { TaskDataParsingType } from '@/components/AG-grid/helper';
+import { useEffect, useState } from 'react';
+import TaskDataParsing, { OriginalTaskType } from '@/components/AG-grid/helper';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import Kanban from '@/components/kanban-viewer/kanban';
+import { KanbanBoard } from '@/components/kanban-board/kanbanBoard';
+import { TaskCalendar } from '@/components/calendar/TaskCalendar';
 
 interface PaginationLink {
     url: string | null;
@@ -26,7 +27,7 @@ interface PaginationLink {
 
 interface TasksPagination {
     current_page: number;
-    data: TaskDataParsingType[];
+    data: OriginalTaskType[];
     first_page_url: string;
     from: number;
     last_page: number;
@@ -41,6 +42,8 @@ interface TasksPagination {
 }
 
 export default function Index({ tasks }: { tasks: TasksPagination }) {
+    const [activeTab, setActiveTab] = useState('table');
+    
     const handlePageChange = (url: string | null) => {
         if (url) {
             router.visit(url);
@@ -92,10 +95,11 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Tabs defaultValue="table" className="w-full">
+                    <Tabs defaultValue="table" value={activeTab} onValueChange={setActiveTab} className="w-full">
                         <TabsList className="mb-4">
                             <TabsTrigger value="table">Tabella</TabsTrigger>
                             <TabsTrigger value="kanban">Kanban</TabsTrigger>
+                            <TabsTrigger value="calendar">Calendario</TabsTrigger>
                         </TabsList>
                     
                         <TabsContent value="table">
@@ -103,12 +107,19 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
                         </TabsContent>
                         
                         <TabsContent value="kanban">
-                            <Kanban />
+                            <KanbanBoard />
                         </TabsContent>
+
+                        <TabsContent value="calendar">
+                            <TaskCalendar tasks={tasks.data} />
+                        </TabsContent>
+
+                        
                     </Tabs>
 
-                    {/* Pagination */}
-                    <div className="flex items-center justify-between px-2 py-4">
+                    {/* Pagination - Visibile solo nella vista Tabella */}
+                    {activeTab === 'table' && (
+                        <div className="flex items-center justify-between px-2 py-4">
                         <div className="text-sm text-muted-foreground">
                             Mostrando {tasks.from} - {tasks.to} di {tasks.total} risultati
                         </div>
@@ -149,6 +160,7 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
                             </Button>
                         </div>
                     </div>
+                    )}
                 </CardContent>
             </Card>
         </>

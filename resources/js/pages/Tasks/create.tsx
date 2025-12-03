@@ -49,7 +49,7 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
         repeatType: '',
         interval: 1,
         startDate: new Date().toISOString().split('T')[0],
-        endType: '',
+        endType: 'never',
         startTime: '09:00',
         endTime: '10:00',
         workDaysOnly: false,

@@ -67,12 +67,17 @@ const AGGridTable = ({ entity, rowData}: AGGridTableProps) => {
         },
     ]); */
 
+    const object = {
+        rowData: rowData,
+        columnDefs: colDefs,
+    }
 
     return (
         <div className='w-full h-[500px]'>
             <AgGridReact
-                rowData={rowData}
-                columnDefs={colDefs}
+                /*rowData={rowData}
+                columnDefs={colDefs}*/
+                {...object}
             />
         </div>
     );

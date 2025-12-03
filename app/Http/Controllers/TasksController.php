@@ -120,6 +120,8 @@ class TasksController extends Controller
         
         $input = $request->all();
 
+        dd($input);
+
         $priority = null;
         if ($input['form']['priority'] == 'low') {
             $priority = 1;
