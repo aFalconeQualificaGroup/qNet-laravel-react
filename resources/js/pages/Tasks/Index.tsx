@@ -1,12 +1,4 @@
 import { Head, router, Link } from '@inertiajs/react';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import * as tasksRoutes from '@/routes/tasks';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +7,7 @@ import AGGridTable from '@/components/AG-grid/agGridTable';
 import { useEffect, useState } from 'react';
 import TaskDataParsing, { OriginalTaskType } from '@/components/AG-grid/helper';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { KanbanBoard } from '@/components/kanban-board/kanbanBoard';
+import { TasksKanbanBoard } from '@/components/kanban-board/TasksKanbanBoard';
 import { TaskCalendar } from '@/components/calendar/TaskCalendar';
 
 interface PaginationLink {
@@ -39,6 +31,13 @@ interface TasksPagination {
     prev_page_url: string | null;
     to: number;
     total: number;
+}
+
+export interface TasksByDeadline {
+    overdue: OriginalTaskType[];
+    today: OriginalTaskType[];
+    week: OriginalTaskType[];
+    month: OriginalTaskType[];
 }
 
 export default function Index({ tasks }: { tasks: TasksPagination }) {
@@ -66,7 +65,7 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
     }, []);
 
     const dataForAgGrid = TaskDataParsing(tasks.data);
-
+    
     return (
         <>
             <Head title="Tasks" />
@@ -107,7 +106,7 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
                         </TabsContent>
                         
                         <TabsContent value="kanban">
-                            <KanbanBoard />
+                            <TasksKanbanBoard />
                         </TabsContent>
 
                         <TabsContent value="calendar">

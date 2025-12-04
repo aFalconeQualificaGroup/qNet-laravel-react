@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   DndContext, 
   closestCorners,
@@ -7,235 +7,301 @@ import {
   DragStartEvent,
   PointerSensor,
   useSensor,
-  useSensors
+  useSensors,
+  DragOverlay
 } from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  arrayMove
-} from "@dnd-kit/sortable";
 import { Column } from "./column";
-import { initialBoard, Board, KanbanColumn } from "./boardData";
+import { Board, KanbanColumn, KanbanCard } from "./boardData";
+import { router, usePage } from '@inertiajs/react';
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card } from "./card";
 
-/**
- * Componente principale della Kanban Board
- * Gestisce il drag and drop delle card tra le colonne
- */
-export function KanbanBoard() {
-  // Stato del board con tutte le colonne e le relative card
-  const [board, setBoard] = useState<Board>(initialBoard);
-  
-  // ID della card attualmente in drag (null quando non c'è drag attivo)
+interface KanbanBoardProps<TData = any> {
+  /** Nome della prop Inertia da caricare (lazy prop) */
+  lazyPropName: string;
+  /** Definizione delle colonne */
+  columns: Array<{
+    id: string;
+    title: string;
+  }>;
+  /** Funzione per mappare i dati della prop in KanbanCard[] per ogni colonna */
+  dataMapper: (data: TData) => Record<string, KanbanCard[]>;
+  /** Funzione per calcolare la nuova data quando si sposta una card */
+  calculateNewDate?: (columnId: string) => string;
+  /** Callback quando una card viene spostata */
+  onCardMoved?: (cardId: string, fromColumn: string, toColumn: string, newDate: string) => void;
+  /** Funzione per filtrare le card (riceve la card e la query di ricerca) */
+  filterFn?: (card: KanbanCard, query: string) => boolean;
+  /** Placeholder per l'input di ricerca */
+  searchPlaceholder?: string;
+}
+
+export function KanbanBoard<TData = any>({
+  lazyPropName,
+  columns: columnDefinitions,
+  dataMapper,
+  calculateNewDate,
+  onCardMoved,
+  filterFn,
+  searchPlaceholder = 'Cerca...'
+}: KanbanBoardProps<TData>) {
+  const [board, setBoard] = useState<Board>({
+    columns: columnDefinitions.map(col => ({ ...col, cards: [] }))
+  });
+  const [filteredBoard, setFilteredBoard] = useState<Board>({
+    columns: columnDefinitions.map(col => ({ ...col, cards: [] }))
+  });
+  const [searchQuery, setSearchQuery] = useState('');
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [sourceColumnId, setSourceColumnId] = useState<string | null>(null);
+  const [targetColumnId, setTargetColumnId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { props } = usePage<Record<string, any>>();
+  
+  const data = props[lazyPropName] as TData | undefined;
+ 
+  useEffect(() => {
+    if (!data) {
+      setIsLoading(true);
+      setError(null);
+      
+      router.reload({
+        only: [lazyPropName],
+        data: {
+          year: '2025',
+        },
+        onSuccess: () => {
+          setIsLoading(false);
+        },
+        onError: (errors) => {
+          setIsLoading(false);
+          setError('Errore nel caricamento dei dati');
+          console.error('Error loading data:', errors);
+        },
+        onFinish: () => {
+          setIsLoading(false);
+        }
+      });
+    }
+  }, [data, lazyPropName]);
 
-  /**
-   * Configurazione dei sensori per il drag and drop
-   * PointerSensor: richiede uno spostamento di 8px prima di attivare il drag
-   * Questo previene drag accidentali durante i click
-   */
+  // Popola le colonne quando arrivano i dati
+  useEffect(() => {
+    if (data) {
+      const mappedData = dataMapper(data);
+
+      const newBoard: Board = {
+        columns: columnDefinitions.map(colDef => ({
+          id: colDef.id,
+          title: colDef.title,
+          cards: mappedData[colDef.id] || []
+        }))
+      };
+
+      setBoard(newBoard);
+      setFilteredBoard(newBoard);
+    }
+  }, [data, dataMapper, columnDefinitions]);
+
+  // Filtra le card in base alla ricerca
+  useEffect(() => {
+    // Non filtrare durante il drag per evitare freeze
+    if (activeId) return;
+    
+    if (!searchQuery.trim()) {
+      setFilteredBoard(board);
+      return;
+    }
+
+    if (!filterFn) {
+      setFilteredBoard(board);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered: Board = {
+      columns: board.columns.map(col => ({
+        ...col,
+        cards: col.cards.filter(card => filterFn(card, query))
+      }))
+    };
+
+    setFilteredBoard(filtered);
+  }, [searchQuery, board, filterFn, activeId]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // distanza minima in pixel per attivare il drag
+        distance: 8,
       },
     })
   );
 
-  /**
-   * Gestisce l'inizio del drag
-   * Salva l'ID della card che viene trascinata
-   */
   function handleDragStart(event: DragStartEvent) {
-    setActiveId(event.active.id as string);
+    const activeId = event.active.id as string;
+    setActiveId(activeId);
+    
+    // Trova e salva la colonna di origine
+    const sourceColumn = board.columns.find((col) =>
+      col.cards.some((card) => card.id === activeId)
+    );
+    setSourceColumnId(sourceColumn?.id || null);
   }
 
-  /**
-   * Gestisce il movimento della card DURANTE il drag (in tempo reale)
-   * Questa funzione viene chiamata continuamente mentre la card viene trascinata
-   * Si occupa di spostare le card tra colonne diverse
-   */
+  function getNewDate(columnId: string): string {
+    if (calculateNewDate) {
+      return calculateNewDate(columnId);
+    }
+    // Default: data odierna
+    return new Date().toISOString().split('T')[0];
+  }
+
   function handleDragOver(event: DragOverEvent) {
-    const { active, over } = event;
-    
-    // Se non c'è un target valido, esci
-    if (!over) return;
-
-    const activeId = active.id as string; // ID della card che viene trascinata
-    const overId = over.id as string;     // ID della card/colonna su cui stiamo passando
-
-    // Se stiamo passando sopra noi stessi, non fare nulla
-    if (activeId === overId) return;
-
-    // 1️⃣ TROVA LA COLONNA SORGENTE (da dove viene la card)
-    const activeColumn = board.columns.find((col) =>
-      col.cards.some((card) => card.id === activeId)
-    );
-    
-    // 2️⃣ TROVA LA COLONNA DESTINAZIONE (dove stiamo trascinando)
-    // Prima prova a trovare la colonna che contiene la card su cui stiamo passando
-    let overColumn = board.columns.find((col) =>
-      col.cards.some((card) => card.id === overId)
-    );
-
-    // Se over è direttamente una colonna (drag su colonna vuota), usa quella
-    if (!overColumn) {
-      overColumn = board.columns.find((col) => col.id === overId);
+    const { over } = event;
+    if (!over) {
+      setTargetColumnId(null);
+      return;
     }
 
-    // Se non troviamo entrambe le colonne, esci
-    if (!activeColumn || !overColumn) return;
-
-    // 3️⃣ GESTISCI LO SPOSTAMENTO TRA COLONNE DIVERSE
-    if (activeColumn.id !== overColumn.id) {
-      // 🔔 HOOK: Qui puoi aggiungere logica quando una card viene spostata tra colonne
-      // Esempio: validazione se lo spostamento è permesso (es. stato workflow)
-      // Esempio: notifiche in tempo reale agli altri utenti
-      // Esempio: log/analytics per tracciare i movimenti
-      // Esempio: preview API call (debounced) per validare lo spostamento
-      
-      const fromStateId = activeColumn.id;
-      const toStateId = overColumn.id;
-      const cardId = activeId;
-
-      // Aggiornare lato backend lo state della card da fromStateId a toStateId
-
-
-      // Trova la posizione della card nella colonna sorgente
-      const activeIndex = activeColumn.cards.findIndex(
-        (card) => card.id === activeId
+    const overId = over.id as string;
+    
+    // Trova la colonna di destinazione
+    let overColumn = filteredBoard.columns.find((col) => col.id === overId);
+    
+    if (!overColumn) {
+      overColumn = filteredBoard.columns.find((col) =>
+        col.cards.some((card) => card.id === overId)
       );
-      
-      // Trova la posizione dove inserire nella colonna destinazione
-      const overIndex = overColumn.cards.findIndex(
-        (card) => card.id === overId
-      );
+    }
 
-      // Ottieni la card che viene spostata
-      const movedCard = activeColumn.cards[activeIndex];
-
-      // 4️⃣ AGGIORNA LO STATO: rimuovi dalla sorgente, aggiungi alla destinazione
-      
-      // Rimuovi la card dalla colonna sorgente
-      const newSourceCards = activeColumn.cards.filter(
-        (card) => card.id !== activeId
-      );
-
-      // Aggiungi la card alla colonna destinazione nella posizione corretta
-      const newTargetCards = [...overColumn.cards];
-      const insertIndex = overIndex >= 0 ? overIndex : newTargetCards.length;
-      newTargetCards.splice(insertIndex, 0, movedCard);
-
-      // Crea il nuovo stato del board
-      const newColumns = board.columns.map((col) => {
-        if (col.id === activeColumn.id) return { ...col, cards: newSourceCards };
-        if (col.id === overColumn.id) return { ...col, cards: newTargetCards };
-        return col;
-      });
-
-      // Aggiorna lo stato
-      setBoard({ columns: newColumns });
-
+    if (overColumn) {
+      setTargetColumnId(overColumn.id);
     }
   }
 
-  /**
-   * Gestisce la FINE del drag (quando l'utente rilascia il mouse)
-   * Si occupa di:
-   * 1. Riordinare le card NELLA STESSA colonna
-   * 2. Finalizzare lo spostamento tra colonne (già gestito da handleDragOver)
-   */
   function handleDragEnd(event: DragEndEvent) {
-    // Reset dell'ID attivo
-    setActiveId(null);
+    const { active } = event;
     
-    const { active, over } = event;
-    
-    // Se non c'è un target valido o stiamo rilasciando sulla stessa card
-    if (!over || active.id === over.id) return;
-
-    const activeId = active.id as string; // Card che abbiamo trascinato
-    const overId = over.id as string;     // Card/colonna su cui abbiamo rilasciato
-
-    // Trova la colonna che contiene la card trascinata
-    const activeColumn = board.columns.find((col) =>
-      col.cards.some((card) => card.id === activeId)
-    );
-
-    if (!activeColumn) return;
-
-    // Trova le posizioni delle card nella colonna
-    const activeIndex = activeColumn.cards.findIndex(
-      (card) => card.id === activeId
-    );
-    const overIndex = activeColumn.cards.findIndex(
-      (card) => card.id === overId
-    );
-
-    // 1️⃣ CASO: Riordinamento NELLA STESSA colonna
-    if (activeIndex !== -1 && overIndex !== -1) {
-      // 🔔 HOOK: Qui puoi aggiungere logica quando una card viene riordinata nella stessa colonna
-      // Esempio: salvare il nuovo ordine/priorità sul backend
-      // Esempio: aggiornare un campo "position" o "order_index"
-      // Esempio: await updateCardPosition(activeId, overIndex)
+    if (active && sourceColumnId && targetColumnId && sourceColumnId !== targetColumnId) {
+      const activeId = active.id as string;
       
-      // Usa arrayMove per riordinare in modo ottimizzato
-      const newCards = arrayMove(activeColumn.cards, activeIndex, overIndex);
-
-      // Aggiorna solo la colonna interessata
-      const newColumns = board.columns.map((col) =>
-        col.id === activeColumn.id ? { ...col, cards: newCards } : col
-      );
-
-      setBoard({ columns: newColumns });
-      
-    } else {
-      // 2️⃣ CASO: Fine dello spostamento TRA COLONNE
-      // Lo spostamento è già stato gestito da handleDragOver in tempo reale
-      // Qui possiamo finalizzare con chiamate API, notifiche, ecc.
-      
-      // 🔔 HOOK: Qui puoi aggiungere logica quando il drag termina dopo uno spostamento tra colonne
-      // Esempio: confermare/persistere lo spostamento con il backend
-      // Esempio: inviare notifiche push agli utenti coinvolti
-      // Esempio: aggiornare campi come timestamp, status, assegnatari
-      // Esempio: trigger di automazioni (es. quando passa a "Completato")
-      // Esempio: validazione finale dello spostamento
-      // 
-      // ⚡ Dati disponibili:
-      // - activeColumn: colonna da cui proviene la card
-      // - activeId: ID della card spostata
-      // 
-      // 📍 Per trovare la colonna di destinazione:
-      const targetColumn = board.columns.find((col) =>
+      const activeColumn = filteredBoard.columns.find((col) =>
         col.cards.some((card) => card.id === activeId)
       );
+      const overColumn = filteredBoard.columns.find((col) => col.id === targetColumnId);
       
-      // 💡 Esempio di implementazione:
-      // if (targetColumn) {
-      //   console.log('Card moved from', activeColumn.id, 'to', targetColumn.id);
-      //   await updateCardStatus(activeId, {
-      //     old_status: activeColumn.id,
-      //     new_status: targetColumn.id,
-      //     moved_at: new Date().toISOString()
-      //   });
-      // }
+      if (activeColumn && overColumn) {
+        const newDueDate = getNewDate(overColumn.id);
+        const activeIndex = activeColumn.cards.findIndex((card) => card.id === activeId);
+        const movedCard = { ...activeColumn.cards[activeIndex], dueDate: newDueDate };
+
+        const newSourceCards = activeColumn.cards.filter((card) => card.id !== activeId);
+        const newTargetCards = [...overColumn.cards, movedCard];
+
+        // Ordina le card della colonna di destinazione per data decrescente
+        newTargetCards.sort((a, b) => {
+          if (!a.dueDate || !b.dueDate) return 0;
+          return new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
+        });
+
+        const newColumns = filteredBoard.columns.map((col) => {
+          if (col.id === activeColumn.id) return { ...col, cards: newSourceCards };
+          if (col.id === overColumn.id) return { ...col, cards: newTargetCards };
+          return col;
+        });
+
+        const newBoard = { columns: newColumns };
+        setBoard(newBoard);
+        setFilteredBoard(newBoard);
+        
+        if (onCardMoved) {
+          onCardMoved(
+            activeId,
+            sourceColumnId,
+            targetColumnId,
+            newDueDate
+          );
+        }
+      }
     }
+    
+    setActiveId(null);
+    setSourceColumnId(null);
+    setTargetColumnId(null);
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex gap-4 p-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex-1 space-y-3">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive" className="m-4">
+        <AlertDescription className="flex items-center justify-between">
+          <span>⚠️ {error}</span>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => router.reload({ only: [lazyPropName] })}
+          >
+            Riprova
+          </Button>
+        </AlertDescription>
+      </Alert>
+    );
   }
 
   return (
-    <DndContext
-      sensors={sensors}                    // Configurazione sensori (PointerSensor con 8px threshold)
-      collisionDetection={closestCorners}  // Algoritmo per rilevare collision (migliore per multi-colonna)
-      onDragStart={handleDragStart}        // Chiamato quando inizia il drag
-      onDragOver={handleDragOver}          // Chiamato DURANTE il drag (movimento tra colonne)
-      onDragEnd={handleDragEnd}            // Chiamato quando finisce il drag (riordinamento)
-    >
-      {/* Container principale del Kanban con scroll orizzontale */}
-      <div className="flex gap-4 overflow-x-auto p-4 bg-background">
-        {board.columns.map((column) => (
-          <Column key={column.id} column={column} />
-        ))}
+    <div className="space-y-4 overflow-x-hidden">
+      <div className="px-4 pt-4">
+        <input
+          type="text"
+          placeholder={searchPlaceholder}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full max-w-md px-4 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        />
       </div>
-    </DndContext>
+      
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex gap-4 p-4 bg-background relative">
+          {filteredBoard.columns.map((column) => (
+            <Column key={column.id} column={column} />
+          ))}
+        </div>
+        
+        <DragOverlay>
+          {activeId ? (
+            (() => {
+              const activeCard = filteredBoard.columns
+                .flatMap(col => col.cards)
+                .find(card => card.id === activeId);
+              return activeCard ? <Card card={activeCard} /> : null;
+            })()
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+    </div>
   );
 }
 

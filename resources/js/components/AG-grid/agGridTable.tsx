@@ -2,7 +2,7 @@ import { AgGridReact } from 'ag-grid-react';
 import { ModuleRegistry } from 'ag-grid-community';
 import { AllEnterpriseModule, LicenseManager } from "ag-grid-enterprise";
 import { getColumnDefs } from './columnDefs';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import AGGridLicense from './license';
   
 ModuleRegistry.registerModules([ AllEnterpriseModule ]);
@@ -17,7 +17,9 @@ type ColumnDef = any[];
 
 const AGGridTable = ({ entity, rowData}: AGGridTableProps) => {
 
-    const [colDefs, setColDefs] = useState<ColumnDef>(getColumnDefs(entity));
+    //const [colDefs, setColDefs] = useState<ColumnDef>(getColumnDefs(entity));
+
+    const colDefs: ColumnDef = useMemo(() => getColumnDefs(entity), [entity]);
 
     /* const [rowData, setRowData] = useState([
         { 

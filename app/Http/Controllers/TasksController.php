@@ -13,13 +13,14 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use PhpParser\Node\Stmt\TryCatch;
 
 class TasksController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         /* Logica custom */
         $tasks = Task::with([
@@ -65,8 +66,10 @@ class TasksController extends Controller
             'all_relations' => $task->relations,
         ]);*/
 
-        return Inertia::render("Tasks/Index", props: [
-            'tasks' => $tasks
+        $year = $request->input('year');
+        return Inertia::render("Tasks/Index", [
+            'tasks' => $tasks,
+            'tasksByDeadline' => Inertia::lazy(fn () => $this->getTasksByDeadlineData($year))
         ]);
     }
 
@@ -315,9 +318,21 @@ class TasksController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id )
     {
-        //
+        try {
+            $task = Task::findOrFail($id);
+            
+            if ($request->has('endtask')) {
+                $task->endtask = $request->input("endtask");
+            }
+            
+            $task->save();
+
+            return back()->with('success', 'Task aggiornato con successo!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Errore durante l\'aggiornamento: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -326,5 +341,81 @@ class TasksController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Recupera i dati dei task raggruppati per scadenza (metodo privato per lazy loading)
+     */
+    private function getTasksByDeadlineData($year = null)
+    {
+        try {
+            // Se year non è specificato, ritorna dati vuoti
+            if (!$year) {
+                return [
+                    'overdue' => [],
+                    'today' => [],
+                    'week' => [],
+                    'month' => [],
+                ];
+            }
+
+            $today = Carbon::today();
+            $endOfWeek = Carbon::today()->endOfWeek();
+            $endOfMonth = Carbon::today()->endOfMonth();
+
+            $relations = ['assignedToUser:id,name,last_name'];
+
+            $overdueTasks = Task::with($relations)
+                ->select('id', 'title', 'description', 'endtask', 'assigned_to')
+                ->whereNotNull('endtask')
+                ->whereYear('endtask', $year)
+                ->whereDate('endtask', '<', $today)
+                ->orderBy('endtask', 'desc')
+                ->limit(50)
+                ->get();
+
+            $todayTasks = Task::with($relations)
+                ->select('id', 'title', 'description', 'endtask', 'assigned_to')
+                ->whereYear('endtask', $year)
+                ->whereDate('endtask', '=', $today)
+                ->orderBy('endtask', 'desc')
+                ->limit(50)
+                ->get();
+
+            $weekTasks = Task::with($relations)
+                ->select('id', 'title', 'description', 'endtask', 'assigned_to')
+                ->whereNotNull('endtask')
+                ->whereYear('endtask', $year)
+                ->whereDate('endtask', '>', $today)
+                ->whereDate('endtask', '<=', $endOfWeek)
+                ->orderBy('endtask', 'desc')
+                ->limit(50)
+                ->get();
+
+            $monthTasks = Task::with($relations)
+                ->select('id', 'title', 'description', 'endtask', 'assigned_to')
+                ->whereNotNull('endtask')
+                ->whereYear('endtask', $year)
+                ->whereDate('endtask', '>', $endOfWeek)
+                ->whereDate('endtask', '<=', $endOfMonth)
+                ->orderBy('endtask', 'desc')
+                ->limit(50)
+                ->get();
+
+            return [
+                'overdue' => $overdueTasks,
+                'today' => $todayTasks,
+                'week' => $weekTasks,
+                'month' => $monthTasks,
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Errore nel recupero dei task per scadenza: ' . $e->getMessage());
+            return [
+                'overdue' => [],
+                'today' => [],
+                'week' => [],
+                'month' => [],
+            ];
+        }
     }
 }

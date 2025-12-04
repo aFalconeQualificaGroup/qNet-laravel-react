@@ -1,69 +1,145 @@
-import { useSortable } from "@dnd-kit/sortable";
+import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { Card as ShadCard } from "@/components/ui/card";
+import { Calendar, User, Maximize2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import type { KanbanCard } from "./boardData";
+import { useState } from "react";
 
 interface Props {
   card: KanbanCard;
 }
 
-/**
- * Componente Card della Kanban Board
- * Rappresenta una singola card draggabile all'interno di una colonna
- */
-export function Card({ card }: Props) {
-  /**
-   * useSortable: rende questa card draggabile e sortable
-   * Restituisce:
-   * - attributes: attributi accessibility per il drag
-   * - listeners: event handlers per mouse/touch
-   * - setNodeRef: riferimento al nodo DOM
-   * - transform: trasformazione CSS durante il drag
-   * - transition: animazione CSS (disabilitata durante il drag per evitare effetto elastico)
-   * - isDragging: boolean che indica se questa card è attualmente in drag
-   */
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: card.id });
+function formatDate(dateString: string | undefined): string {
+  if (!dateString) return '';
+  
+  // Converti vari formati in Date
+  let date: Date;
+  
+  // Prova formato DD-MM-YYYY
+  if (dateString.includes('-') && dateString.split('-')[0].length === 2) {
+    const [day, month, year] = dateString.split('-');
+    date = new Date(`${year}-${month}-${day}`);
+  } else {
+    // Formato ISO YYYY-MM-DD o altri
+    date = new Date(dateString);
+  }
+  
+  // Verifica se la data è valida
+  if (isNaN(date.getTime())) return dateString;
+  
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  const dateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const tomorrowDay = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
+  
+  if (dateDay.getTime() === todayDay.getTime()) return 'Oggi';
+  if (dateDay.getTime() === tomorrowDay.getTime()) return 'Domani';
+  
+  return date.toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' });
+}
 
-  /**
-   * Stile dinamico per il drag and drop
-   * - transform: applica la trasformazione di posizione durante il drag
-   * - transition: DISABILITATO durante il drag per evitare effetto elastico
-   *   (viene riattivato automaticamente quando il drag finisce)
-   * - opacity: ridotta a 0.5 durante il drag per feedback visivo
-   */
+export function Card({ card }: Props) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: card.id,
+  });
+
   const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition: isDragging ? undefined : transition, // ⚡ FIX effetto elastico
-    opacity: isDragging ? 0.5 : 1,
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    opacity: isDragging ? 0 : 1,
   };
 
   return (
-    <ShadCard
-      ref={setNodeRef}        // Riferimento per dnd-kit
-      {...attributes}         // Attributi accessibility (aria-*, role, etc)
-      {...listeners}          // Event handlers per drag (onPointerDown, etc)
-      className="p-3 bg-card dark:bg-card border border-border shadow-sm cursor-grab active:cursor-grabbing select-none hover:shadow-md"
-      style={style}           // Stili dinamici per drag
-    >
-      {/* Contenuto della card */}
-      <div className="text-card-foreground">{card.title}</div>
-      
-      {/* 🔔 HOOK: Qui puoi aggiungere contenuto personalizzato alla card */}
-      {/* Esempi:
-        - Badge per priorità/status
-        - Avatar dell'assegnatario
-        - Data di scadenza
-        - Tag/etichette
-        - Pulsanti azione (edit, delete)
-        - Contatore commenti/allegati
-      */}
-    </ShadCard>
+    <>
+      <ShadCard
+        ref={setNodeRef}
+        {...attributes}
+        {...listeners}
+        className="p-3 bg-card dark:bg-card border border-border shadow-sm cursor-grab active:cursor-grabbing select-none hover:shadow-md mb-2 relative group"
+        style={style}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div className="text-card-foreground font-medium mb-2 line-clamp-1 flex-1">{card.title}</div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(true);
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <Maximize2 className="h-3 w-3" />
+          </Button>
+        </div>
+        
+        {card.description && (
+          <div className="text-sm text-muted-foreground mb-2 line-clamp-2">
+            {card.description}
+          </div>
+        )}
+        
+        <div className="flex items-center justify-between text-xs text-muted-foreground mt-2 pt-2 border-t border-border gap-2">
+          {card.dueDate && (
+            <div className="flex items-center gap-1 min-w-0">
+              <Calendar className="w-3 h-3 shrink-0" />
+              <span className="truncate">{formatDate(card.dueDate)}</span>
+            </div>
+          )}
+          
+          {card.assignee && (
+            <div className="flex items-center gap-1 min-w-0">
+              <User className="w-3 h-3 shrink-0" />
+              <span className="truncate">{card.assignee}</span>
+            </div>
+          )}
+        </div>
+      </ShadCard>
+
+      <Dialog open={isExpanded} onOpenChange={setIsExpanded}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{card.title}</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {card.description && (
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Descrizione</h4>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{card.description}</p>
+              </div>
+            )}
+            
+            <div className="grid grid-cols-2 gap-4">
+              {card.dueDate && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-1">Scadenza</h4>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="w-4 h-4" />
+                    <span>{formatDate(card.dueDate)} ({card.dueDate})</span>
+                  </div>
+                </div>
+              )}
+              
+              {card.assignee && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-1">Assegnato a</h4>
+                  <div className="flex items-center gap-2 text-sm">
+                    <User className="w-4 h-4" />
+                    <span>{card.assignee}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
