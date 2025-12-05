@@ -21,54 +21,6 @@ const AGGridTable = ({ entity, rowData}: AGGridTableProps) => {
 
     const colDefs: ColumnDef = useMemo(() => getColumnDefs(entity), [entity]);
 
-    /* const [rowData, setRowData] = useState([
-        { 
-            id: 1, 
-            Titolo: "Implementazione CRM", 
-            Cliente: "Azienda Alpha S.r.l.", 
-            "Data Inizio": "2025-01-15", 
-            "Data Fine": "2025-03-30", 
-            Stato: "In Lavorazione", 
-            Azioni: "⚙️"
-        },
-        { 
-            id: 2, 
-            Titolo: "Consulenza ISO 9001", 
-            Cliente: "Beta Industries", 
-            "Data Inizio": "2025-02-01", 
-            "Data Fine": "2025-04-15", 
-            Stato: "Pianificata", 
-            Azioni: "⚙️"
-        },
-        { 
-            id: 3, 
-            Titolo: "Audit di sicurezza", 
-            Cliente: "Gamma Corp", 
-            "Data Inizio": "2024-12-10", 
-            "Data Fine": "2025-01-20", 
-            Stato: "Completata", 
-            Azioni: "⚙️"
-        },
-        { 
-            id: 4, 
-            Titolo: "Formazione personale", 
-            Cliente: "Delta Services", 
-            "Data Inizio": "2025-03-05", 
-            "Data Fine": "2025-03-25", 
-            Stato: "In Lavorazione", 
-            Azioni: "⚙️"
-        },
-        { 
-            id: 5, 
-            Titolo: "Revisione processi", 
-            Cliente: "Epsilon Group", 
-            "Data Inizio": "2025-01-20", 
-            "Data Fine": "2025-02-28", 
-            Stato: "In Pausa", 
-            Azioni: "⚙️"
-        },
-    ]); */
-
     const object = {
         rowData: rowData,
         columnDefs: colDefs,
