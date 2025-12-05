@@ -1,37 +1,30 @@
-import { useMemo } from 'react';
-import { Calendar, dateFnsLocalizer, Event } from 'react-big-calendar';
+import { useMemo, useState } from 'react';
+import { Calendar, dateFnsLocalizer, Event, View } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { router } from '@inertiajs/react';
-import * as tasksRoutes from '@/routes/tasks';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { CalendarIcon } from 'lucide-react';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import type { OriginalTaskType } from '@/components/AG-grid/helper';
 
-/**
- * Configurazione localizzazione per il calendario
- * Usa date-fns per formattare le date in italiano
- */
-const locales = {
-  'it': it,
-};
+const locales = { 'it': it };
 
 const localizer = dateFnsLocalizer({
   format,
   parse,
-  startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 1 }), // Lunedì come primo giorno
+  startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 1 }),
   getDay,
   locales,
 });
 
-/**
- * Interfaccia per gli eventi del calendario
- * Estende Event di react-big-calendar con i dati del task
- */
 interface CalendarEvent extends Event {
   id: number;
   title: string;
   start: Date;
   end: Date;
+  allDay?: boolean;
   resource?: {
     status: number;
     priority?: any;
@@ -42,92 +35,99 @@ interface CalendarEvent extends Event {
 }
 
 interface TaskCalendarProps {
-  tasks: OriginalTaskType[];
+  tasks?: OriginalTaskType[];
 }
 
-/**
- * Componente Calendario per visualizzare i task
- * Converte i dati dei task in eventi del calendario
- */
-export function TaskCalendar({ tasks }: TaskCalendarProps) {
-  /**
-   * Converte i task in eventi del calendario
-   * Usa useMemo per evitare ricalcoli non necessari
-   */
+export function TaskCalendar({ tasks: initialTasks }: TaskCalendarProps) {
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [currentView, setCurrentView] = useState<View>('month');
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const tasks = initialTasks || [];
+
+  const handleDateChange = (date: string) => {
+    setSelectedDate(date);
+    setCurrentDate(new Date(date));
+  };
+
+  const handleTodayClick = () => {
+    const today = new Date();
+    setSelectedDate(format(today, 'yyyy-MM-dd'));
+    setCurrentDate(today);
+  };
+
+  const handleNavigate = (newDate: Date) => {
+    setCurrentDate(newDate);
+    setSelectedDate(format(newDate, 'yyyy-MM-dd'));
+  };
+
+  const handleViewChange = (view: View) => {
+    setCurrentView(view);
+  };
+
   const events: CalendarEvent[] = useMemo(() => {
     console.log('📅 Parsing tasks for calendar:', tasks.length);
     
     return tasks.map((task) => {
-      // Parsing delle date
-      // Combina datatask + timetask per ottenere data/ora completa
-      let startDateTime: Date;
-      let endDateTime: Date;
+      let eventDate: Date;
       
       try {
-        if (task.datatask) {
-          // Formato atteso: YYYY-MM-DD
-          const dateTimeParts = task.datatask.split(' ');
-          const datePart = dateTimeParts[0];
-          const timePart = task.timetask || '00:00:00';
-          startDateTime = new Date(`${datePart}T${timePart}`);
+        if (task.endtask) {
+          eventDate = new Date(task.endtask + 'T12:00:00');
+        } else if (task.datatask) {
+          eventDate = new Date(task.datatask);
         } else {
-          startDateTime = new Date();
+          console.warn('⚠️ Task without date:', task.id);
+          eventDate = new Date();
         }
         
-        if (task.datataskend) {
-          const dateTimeParts = task.datataskend.split(' ');
-          const datePart = dateTimeParts[0];
-          const timePart = task.timetaskend || '23:59:00';
-          endDateTime = new Date(`${datePart}T${timePart}`);
-        } else {
-          endDateTime = new Date(startDateTime.getTime() + 3600000); // +1 ora
+        if (isNaN(eventDate.getTime())) {
+          console.warn('⚠️ Invalid date for task:', task.id, task.endtask);
+          eventDate = new Date();
         }
-        
-        // Verifica se le date sono valide
-        if (isNaN(startDateTime.getTime())) {
-          console.warn('⚠️ Invalid start date for task:', task.id, task.datatask);
-          startDateTime = new Date();
-        }
-        if (isNaN(endDateTime.getTime())) {
-          console.warn('⚠️ Invalid end date for task:', task.id, task.datataskend);
-          endDateTime = new Date(startDateTime.getTime() + 3600000);
-        }
-        
       } catch (error) {
-        console.error('❌ Error parsing dates for task:', task.id, error);
-        startDateTime = new Date();
-        endDateTime = new Date(startDateTime.getTime() + 3600000);
+        console.error('❌ Error parsing date for task:', task.id, error);
+        eventDate = new Date();
       }
 
       return {
         id: task.id,
         title: task.title || 'Task senza titolo',
-        start: startDateTime,
-        end: endDateTime,
+        start: eventDate,
+        end: eventDate,
+        allDay: true,
         resource: {
           status: task.status,
           priority: task.priority,
           description: task.description || undefined,
           customer: task.customer?.name,
           assignee: task.assigned_to_user 
-            ? `${task.assigned_to_user.name} ${task.assigned_to_user.last_name}`
+            ? `${task.assigned_to_user.name} ${task.assigned_to_user.last_name || ''}`
             : undefined,
         },
       };
     });
   }, [tasks]);
 
-  /**
-   * Personalizzazione dello stile degli eventi in base allo status
-   */
   const eventStyleGetter = (event: CalendarEvent) => {
     const status = event.resource?.status;
     
-    // Colori in base allo status
-    const statusColors: Record<number, { backgroundColor: string; borderColor: string }> = {
-      0: { backgroundColor: 'hsl(var(--primary))', borderColor: 'hsl(var(--primary))' },      // Aperto
-      1: { backgroundColor: 'hsl(var(--secondary))', borderColor: 'hsl(var(--secondary))' },  // In corso
-      2: { backgroundColor: 'hsl(var(--muted))', borderColor: 'hsl(var(--border))' },         // Completato
+    const statusColors: Record<number, { backgroundColor: string; color: string; borderColor: string }> = {
+      0: { 
+        backgroundColor: '#3b82f6', // blue-500
+        color: '#ffffff',
+        borderColor: '#2563eb' // blue-600
+      },
+      1: { 
+        backgroundColor: '#f59e0b', // amber-500
+        color: '#ffffff',
+        borderColor: '#d97706' // amber-600
+      },
+      2: { 
+        backgroundColor: '#10b981', // green-500
+        color: '#ffffff',
+        borderColor: '#059669' // green-600
+      },
     };
 
     const colors = statusColors[status ?? 0] || statusColors[0];
@@ -135,19 +135,18 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
     return {
       style: {
         backgroundColor: colors.backgroundColor,
+        color: colors.color,
         borderColor: colors.borderColor,
         borderRadius: '4px',
-        opacity: 0.9,
-        color: 'white',
-        border: '1px solid',
+        border: '2px solid',
         display: 'block',
+        fontSize: '13px',
+        fontWeight: '500',
+        padding: '2px 4px',
       },
     };
   };
 
-  /**
-   * Messaggi personalizzati in italiano
-   */
   const messages = {
     today: 'Oggi',
     previous: 'Indietro',
@@ -155,7 +154,6 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
     month: 'Mese',
     week: 'Settimana',
     day: 'Giorno',
-    agenda: 'Agenda',
     date: 'Data',
     time: 'Ora',
     event: 'Evento',
@@ -164,163 +162,60 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
   };
 
   return (
-    <div className="h-[700px] w-full">
-      <style>{`
-        /* Tailwind-based calendar styles */
-        .rbc-calendar {
-          font-family: inherit;
-        }
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end p-4 bg-card border border-border rounded-lg">
+        <div className="flex-1 w-full sm:w-auto">
+          <Label htmlFor="calendar-date" className="text-sm font-medium mb-2 flex items-center gap-2">
+            <CalendarIcon className="w-4 h-4" />
+            Vai alla data
+          </Label>
+          <Input
+            id="calendar-date"
+            type="date"
+            value={selectedDate}
+            onChange={(e) => handleDateChange(e.target.value)}
+            className="w-full"
+          />
+        </div>
         
-        .rbc-toolbar {
-          @apply flex flex-wrap justify-between items-center gap-4 pb-4 mb-4 border-b border-border;
-        }
+        <Button
+          onClick={handleTodayClick}
+          variant="outline"
+          className="w-full sm:w-auto"
+        >
+          Torna a Oggi
+        </Button>
         
-        .rbc-toolbar button {
-          @apply px-4 py-2 bg-secondary text-secondary-foreground border border-border rounded-md text-sm transition-colors hover:bg-secondary/80;
-        }
-        
-        .rbc-toolbar button:active,
-        .rbc-toolbar button.rbc-active {
-          @apply bg-primary text-primary-foreground border-primary;
-        }
-        
-        .rbc-toolbar-label {
-          @apply text-lg font-semibold text-foreground;
-        }
-        
-        .rbc-header {
-          @apply p-3 font-semibold text-foreground border-b border-border bg-muted/30;
-        }
-        
-        .rbc-month-view,
-        .rbc-time-view,
-        .rbc-agenda-view {
-          @apply border border-border rounded-lg overflow-hidden bg-card;
-        }
-        
-        .rbc-day-bg {
-          @apply bg-card border border-border;
-        }
-        
-        .rbc-day-bg:hover {
-          @apply bg-muted/30;
-        }
-        
-        .rbc-off-range-bg {
-          @apply bg-muted/20;
-        }
-        
-        .rbc-today {
-          @apply bg-primary/10;
-        }
-        
-        .rbc-date-cell {
-          @apply p-2 text-right text-foreground;
-        }
-        
-        .rbc-off-range {
-          @apply text-muted-foreground;
-        }
-        
-        .rbc-now .rbc-button-link {
-          @apply font-bold text-primary;
-        }
-        
-        .rbc-event {
-          @apply px-2 py-1 text-xs cursor-pointer rounded my-0.5 mx-1;
-        }
-        
-        .rbc-event:hover {
-          @apply opacity-100 shadow-md;
-        }
-        
-        .rbc-event-label {
-          @apply text-xs;
-        }
-        
-        .rbc-event-content {
-          @apply font-medium;
-        }
-        
-        .rbc-overlay {
-          @apply bg-popover border border-border rounded-lg shadow-xl p-2;
-        }
-        
-        .rbc-overlay-header {
-          @apply p-2 border-b border-border font-semibold text-foreground;
-        }
-        
-        .rbc-time-header-content {
-          @apply border-l border-border;
-        }
-        
-        .rbc-time-content {
-          @apply border-t border-border;
-        }
-        
-        .rbc-time-slot {
-          @apply text-muted-foreground text-xs;
-        }
-        
-        .rbc-current-time-indicator {
-          @apply bg-destructive h-0.5;
-        }
-        
-        .rbc-slot-selection {
-          @apply bg-primary/30 border border-primary;
-        }
-        
-        .rbc-agenda-view table {
-          @apply w-full border-spacing-0;
-        }
-        
-        .rbc-agenda-date-cell,
-        .rbc-agenda-time-cell {
-          @apply p-3 whitespace-nowrap text-muted-foreground text-sm;
-        }
-        
-        .rbc-agenda-event-cell {
-          @apply p-3 text-foreground;
-        }
-        
-        .rbc-agenda-view table tbody > tr > td {
-          @apply border-t border-border;
-        }
-        
-        .rbc-agenda-view table tbody > tr > td + td {
-          @apply border-l border-border;
-        }
-      `}</style>
-      
-      <Calendar
-        localizer={localizer}
-        events={events}
-        startAccessor="start"
-        endAccessor="end"
-        culture="it"
-        messages={messages}
-        eventPropGetter={eventStyleGetter}
-        views={['month', 'week', 'day', 'agenda']}
-        defaultView="month"
-        popup
-        selectable
-        onSelectEvent={(event) => {
-          // 🎯 Naviga alla pagina di edit del task
-          const taskId = (event as CalendarEvent).id;
-          console.log('📝 Navigating to task:', taskId);
-          router.visit(tasksRoutes.edit.url({ task: taskId }));
-        }}
-        onSelectSlot={(slotInfo) => {
-          // 🎯 Crea nuovo task con data precompilata
-          console.log('➕ Creating new task for date:', slotInfo.start);
-          router.visit(tasksRoutes.create.url(), {
-            data: {
-              datatask: format(slotInfo.start, 'yyyy-MM-dd'),
-              timetask: format(slotInfo.start, 'HH:mm:ss'),
-            },
-          });
-        }}
-      />
+        <div className="text-sm text-muted-foreground">
+          {tasks.length} task totali • {events.length} visualizzati
+        </div>
+      </div>
+
+      <div className="h-[700px] w-full bg-card border border-border rounded-lg p-4">
+        <Calendar
+          localizer={localizer}
+          events={events}
+          startAccessor="start"
+          endAccessor="end"
+          culture="it"
+          messages={messages}
+          eventPropGetter={eventStyleGetter}
+          views={['month', 'week', 'day']}
+          view={currentView}
+          date={currentDate}
+          onNavigate={handleNavigate}
+          onView={handleViewChange}
+          popup
+          selectable
+          onSelectEvent={(event) => {
+            const taskId = (event as CalendarEvent).id;
+            console.log('📝 Selected task:', taskId, event);
+          }}
+          onSelectSlot={(slotInfo) => {
+            console.log('➕ Selected slot:', slotInfo.start);
+          }}
+        />
+      </div>
     </div>
   );
 }

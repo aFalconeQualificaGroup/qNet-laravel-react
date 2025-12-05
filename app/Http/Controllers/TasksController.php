@@ -48,28 +48,12 @@ class TasksController extends Controller
             'taskReminder',          // Promemoria
         ])->paginate(15);
         
-       /* $task = $tasks->first();
-        dd([
-            'id' => $task->id,
-            'title' => $task->title,
-            'customer' => $task->customer?->name,
-            'order' => $task->order?->title,
-            'orderMilestone' => $task->orderMilestone?->title,
-            'opportunity' => $task->opportunity?->title,
-            'contact' => $task->contact?->name,
-            'assignedBy' => $task->assignedByUser?->name . ' ' . $task->assignedByUser?->last_name,
-            'assignedTo' => $task->assignedToUser?->name . ' ' . $task->assignedToUser?->last_name,
-            'area' => $task->area?->nome ?? '',
-            'site' => $task->site?->address,
-            'spazioAttivita' => $task->spazioAttivita?->nome,
-            'observer' => $task->osservatore?->name,
-            'all_relations' => $task->relations,
-        ]);*/
-
         $year = $request->input('year');
+        $date = $request->input('date');
         return Inertia::render("Tasks/Index", [
             'tasks' => $tasks,
-            'tasksByDeadline' => Inertia::lazy(fn () => $this->getTasksByDeadlineData($year))
+            'tasksByDeadline' => Inertia::lazy(fn () => $this->getTasksByDeadlineData($year)),
+            'tasksForCalendarView' => Inertia::lazy(fn () => $this->getTasksForCalendarView($date)),
         ]);
     }
 
@@ -123,8 +107,6 @@ class TasksController extends Controller
         
         $input = $request->all();
 
-        dd($input);
-
         $priority = null;
         if ($input['form']['priority'] == 'low') {
             $priority = 1;
@@ -156,6 +138,7 @@ class TasksController extends Controller
             'typetask' => $task_type,
             'datatask' => null,
             'datataskend' => null,
+            'endtask' => $input['form']['due_date'],
             'timetask' => null,
             'timetaskend' => null,
             'feedback_required' => ($input['form']['feedback_required']) ? 1 : 0,
@@ -416,6 +399,46 @@ class TasksController extends Controller
                 'week' => [],
                 'month' => [],
             ];
+        }
+    }
+
+    private function getTasksForCalendarView($date = null)
+    {
+        try {
+            // Se date non è specificato, usa oggi
+            $date = $date ?? Carbon::today()->format('Y-m-d');
+
+            return Task::with([
+                'customer',
+                'order',
+                'orderMilestone',
+                'opportunity',
+                'lead',
+                'contact',
+                'assignedByUser',
+                'assignedToUser',
+                'area',
+                'site',
+                'spazioAttivita',
+                'spazio',
+                'osservatore',
+                'assegnati',
+                'taskdocumenti',
+                'tasksubs',
+                'subtasks',
+                'parenttask',
+                'messaggiContestazione',
+                'operatori',
+                'reportmod',
+                'taskReminder',
+            ])
+            ->whereNotNull('endtask')
+            ->whereDate('endtask', $date)
+            ->orderBy('endtask', 'asc')
+            ->get();
+        } catch (\Exception $e) {
+            \Log::error('Errore nel recupero dei task per calendar view: ' . $e->getMessage());
+            return [];
         }
     }
 }

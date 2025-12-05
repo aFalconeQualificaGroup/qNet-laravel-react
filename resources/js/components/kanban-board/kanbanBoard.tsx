@@ -6,6 +6,8 @@ import {
   DragOverEvent,
   DragStartEvent,
   PointerSensor,
+  TouchSensor,
+  MouseSensor,
   useSensor,
   useSensors,
   DragOverlay
@@ -133,9 +135,15 @@ export function KanbanBoard<TData = any>({
   }, [searchQuery, board, filterFn, activeId]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
         distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
       },
     })
   );
@@ -266,14 +274,14 @@ export function KanbanBoard<TData = any>({
   }
 
   return (
-    <div className="space-y-4 overflow-x-hidden">
-      <div className="px-4 pt-4">
+    <div className="space-y-2 sm:space-y-4 overflow-x-hidden">
+      <div className="px-2 sm:px-4 pt-2 sm:pt-4">
         <input
           type="text"
           placeholder={searchPlaceholder}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full max-w-md px-4 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full px-3 sm:px-4 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm sm:text-base"
         />
       </div>
       
@@ -284,7 +292,8 @@ export function KanbanBoard<TData = any>({
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-4 p-4 bg-background relative">
+        {/* Desktop: horizontal scroll | Mobile: vertical stack */}
+        <div className="flex flex-col md:flex-row gap-2 sm:gap-4 p-2 sm:p-4 bg-background relative md:overflow-x-auto">
           {filteredBoard.columns.map((column) => (
             <Column key={column.id} column={column} />
           ))}
