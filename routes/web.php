@@ -17,7 +17,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
+    Route::get('tasks/rows', [App\Http\Controllers\TasksController::class, 'rows']);
+
     Route::resource("tasks", App\Http\Controllers\TasksController::class);
+
+    Route::get('aggrid-settings', [App\Http\Controllers\AgGridController::class, 'settings']);
 });
 
 require __DIR__.'/settings.php';

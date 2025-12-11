@@ -326,6 +326,41 @@ class TasksController extends Controller
         //
     }
 
+    public function rows()
+    {
+        $query = Task::with([
+            'customer',              // Cliente (Customer) - nome
+            'order',                 // Ordine - title
+            'orderMilestone',        // Milestone ordine - title
+            'opportunity',           // Opportunità - title
+            'lead',                  // Lead
+            'contact',               // Contatto
+            'assignedByUser',        // Utente che ha assegnato - name
+            'assignedToUser',        // Utente assegnato a - name
+            'area',                  // Area - nome
+            'site',                  // Sede cliente - address
+            'spazioAttivita',        // Spazio attività
+            'spazio',                // Spazio
+            'osservatore',           // Osservatore (User)
+            'assegnati',             // Utenti assegnati (TaskAssigned)
+            'taskdocumenti',         // Documenti task (TaskDocument)
+            'tasksubs',              // Sub-tasks (TaskSub)
+            'subtasks',              // Sottoattività (Task figli)
+            'parenttask',            // Task padre
+            'messaggiContestazione', // Messaggi contestazione
+            'operatori',             // Operatori
+            'reportmod',             // Report
+            'taskReminder',          // Promemoria
+        ]);
+
+        $tasks = $query->limit(200)->get();
+
+        return [
+            'rows' => $tasks,
+            'rowCount' => $query->count(),
+        ];
+    }
+
     /**
      * Recupera i dati dei task raggruppati per scadenza (metodo privato per lazy loading)
      */

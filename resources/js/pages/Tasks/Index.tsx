@@ -115,51 +115,6 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
 
                         
                     </Tabs>
-
-                    {/* Pagination - Visibile solo nella vista Tabella */}
-                    {activeTab === 'table' && (
-                        <div className="flex items-center justify-between px-2 py-4">
-                        <div className="text-sm text-muted-foreground">
-                            Mostrando {tasks.from} - {tasks.to} di {tasks.total} risultati
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handlePageChange(tasks.prev_page_url)}
-                                disabled={!tasks.prev_page_url}
-                            >
-                                Precedente
-                            </Button>
-                            
-                            <div className="flex items-center gap-1">
-                                {tasks.links
-                                    .filter(link => link.label !== '&laquo; Previous' && link.label !== 'Next &raquo;' && link.label !== '...')
-                                    .slice(0, 7)
-                                    .map((link, index) => (
-                                        <Button
-                                            key={index}
-                                            variant={link.active ? 'default' : 'outline'}
-                                            size="sm"
-                                            onClick={() => handlePageChange(link.url)}
-                                            disabled={!link.url}
-                                        >
-                                            {link.label}
-                                        </Button>
-                                    ))}
-                            </div>
-
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handlePageChange(tasks.next_page_url)}
-                                disabled={!tasks.next_page_url}
-                            >
-                                Successivo
-                            </Button>
-                        </div>
-                    </div>
-                    )}
                 </CardContent>
             </Card>
         </>
