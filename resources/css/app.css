@@ -142,12 +142,12 @@
         height: 100vh;
         overflow: hidden;
     }
-    
+
     /* Il contenitore principale occupa tutta l'altezza */
     #app {
         height: 100%;
     }
-    
+
     #app > div {
         height: 100%;
     }

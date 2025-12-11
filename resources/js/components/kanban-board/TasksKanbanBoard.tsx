@@ -57,7 +57,7 @@ export function TasksKanbanBoard() {
 
     const calculateNewDate = useCallback((columnId: string): string => {
         const now = new Date();
-        
+
         // Funzione helper per formattare la data senza problemi di timezone
         const formatDate = (date: Date): string => {
             const year = date.getFullYear();
@@ -101,7 +101,7 @@ export function TasksKanbanBoard() {
             preserveState: true,
             only: ['flash'],
         });
-        
+
     };
 
     const filterCards = useCallback((card: KanbanCard, query: string): boolean => {

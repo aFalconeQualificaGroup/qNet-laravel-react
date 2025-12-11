@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
-import { 
-    Filter, 
-    Search, 
-    ChevronDown, 
-    ChevronUp, 
-    X, 
-    Plus, 
-    Save, 
-    Trash2, 
-    Star, 
+import {
+    Filter,
+    Search,
+    ChevronDown,
+    ChevronUp,
+    X,
+    Plus,
+    Save,
+    Trash2,
+    Star,
     History,
     Zap,
     LayoutGrid,
@@ -79,16 +79,16 @@ export default function App() {
     const [activeTab, setActiveTab] = useState<'filters' | 'saved' | 'favorites'>('saved');
     const [searchText, setSearchText] = useState('');
     const [isCollapsed, setIsCollapsed] = useState(false);
-    
+
     const [filters, setFilters] = useState<FiltersMap>(createInitialFilters());
     const [collegatoA, setCollegatoA] = useState<CollegatoAState>(initialCollegatoA);
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({ statoAttivita: true });
-    
+
     // Saved & Favorites
     const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([]);
     const [favorites, setFavorites] = useState<number[]>([]);
     const [showSaveModal, setShowSaveModal] = useState(false);
-    
+
     // Save Modal State
     const [newFilterName, setNewFilterName] = useState('');
     const [newFilterDescription, setNewFilterDescription] = useState('');
@@ -104,7 +104,7 @@ export default function App() {
         setFilters(prev => {
             const newConditions = [...prev[filterKey].conditions];
             newConditions[conditionIndex] = { ...newConditions[conditionIndex], ...updates };
-            
+
             // Auto-clear values if operator changes to empty/not empty
             if (updates.operator && ['is_empty', 'is_not_empty'].includes(updates.operator)) {
                 newConditions[conditionIndex].values = [];
@@ -149,8 +149,8 @@ export default function App() {
 
     const toggleMultiSelect = (filterKey: string, conditionIndex: number, value: string) => {
         const currentValues = filters[filterKey].conditions[conditionIndex].values;
-        const newValues = currentValues.includes(value) 
-            ? currentValues.filter(v => v !== value) 
+        const newValues = currentValues.includes(value)
+            ? currentValues.filter(v => v !== value)
             : [...currentValues, value];
         updateCondition(filterKey, conditionIndex, { values: newValues });
     };
@@ -220,7 +220,7 @@ export default function App() {
         const isDate = filterKey.includes('data');
         const isMulti = ['assegnatario', 'osservatori', 'tipoAttivita'].includes(filterKey);
         const options = isDate ? OPERATORS.date : (isMulti ? OPERATORS.multiselect : OPERATORS.select);
-        
+
         // Data Source for MultiSelect
         let sourceData: string[] = [];
         if (filterKey === 'assegnatario' || filterKey === 'osservatori') sourceData = MOCK_DATA.utenti;
@@ -235,13 +235,13 @@ export default function App() {
             <div className="flex flex-col gap-3 w-full animate-fade-in">
                 <div className="flex gap-2 items-center">
                     <div className="w-1/3 min-w-[140px]">
-                        <Select 
-                            value={condition.operator} 
-                            onChange={(val) => updateCondition(filterKey, index, { operator: val })} 
-                            options={options} 
+                        <Select
+                            value={condition.operator}
+                            onChange={(val) => updateCondition(filterKey, index, { operator: val })}
+                            options={options}
                         />
                     </div>
-                    
+
                     {needsValues && (
                         <div className="flex-1">
                             {/* Date Handling */}
@@ -258,9 +258,9 @@ export default function App() {
                                     <div className="border border-slate-300 rounded-md max-h-40 overflow-y-auto bg-white p-2 space-y-1 shadow-inner custom-scrollbar">
                                         {sourceData.map(opt => (
                                             <label key={opt} className="flex items-center gap-2 p-1 hover:bg-slate-50 rounded cursor-pointer">
-                                                <input 
-                                                    type="checkbox" 
-                                                    checked={condition.values.includes(opt)} 
+                                                <input
+                                                    type="checkbox"
+                                                    checked={condition.values.includes(opt)}
                                                     onChange={() => toggleMultiSelect(filterKey, index, opt)}
                                                     className="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                                                 />
@@ -276,8 +276,8 @@ export default function App() {
                                                 key={opt}
                                                 onClick={() => updateCondition(filterKey, index, { values: [opt] })}
                                                 className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
-                                                    condition.values[0] === opt 
-                                                    ? 'bg-primary-50 border-primary-500 text-primary-700 font-medium' 
+                                                    condition.values[0] === opt
+                                                    ? 'bg-primary-50 border-primary-500 text-primary-700 font-medium'
                                                     : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
                                                 }`}
                                             >
@@ -296,7 +296,7 @@ export default function App() {
 
     return (
         <div className="w-full max-w-6xl h-[90vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200">
-            
+
             {/* --- HEADER --- */}
             <div className="p-4 border-b border-slate-200 bg-white flex flex-col gap-4 z-10">
                 <div className="flex items-center gap-3">
@@ -330,8 +330,8 @@ export default function App() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as any)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                                        activeTab === tab.id 
-                                        ? 'bg-white text-primary-600 shadow-sm' 
+                                        activeTab === tab.id
+                                        ? 'bg-white text-primary-600 shadow-sm'
                                         : 'text-slate-500 hover:text-slate-700'
                                     }`}
                                 >
@@ -382,11 +382,11 @@ export default function App() {
                                         })}
                                     </div>
                                     <div className="pl-4 border-l border-slate-200 ml-4">
-                                         <Button 
-                                            variant="ghost" 
-                                            size="sm" 
-                                            onClick={() => setShowSaveModal(true)} 
-                                            icon={<Save size={16} />} 
+                                         <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setShowSaveModal(true)}
+                                            icon={<Save size={16} />}
                                             className="text-primary-600 hover:bg-primary-50 whitespace-nowrap"
                                         >
                                             Salva Filtro
@@ -397,7 +397,7 @@ export default function App() {
 
                             {/* Section: Collegato A (Hierarchical) */}
                             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                                <button 
+                                <button
                                     onClick={() => toggleSection('collegatoA')}
                                     className="w-full flex items-center justify-between p-4 bg-white hover:bg-slate-50 transition-colors"
                                 >
@@ -416,7 +416,7 @@ export default function App() {
                                     </div>
                                     {expandedSections['collegatoA'] ? <ChevronUp size={18} className="text-slate-400 shrink-0" /> : <ChevronDown size={18} className="text-slate-400 shrink-0" />}
                                 </button>
-                                
+
                                 {expandedSections['collegatoA'] && (
                                     <div className="p-4 border-t border-slate-100">
                                         <HierarchicalFilter state={collegatoA} onChange={setCollegatoA} />
@@ -433,7 +433,7 @@ export default function App() {
 
                                 return (
                                     <div key={key} className={`bg-white rounded-xl border transition-all duration-200 ${isActive ? 'border-primary-200 shadow-md' : 'border-slate-200 shadow-sm'}`}>
-                                        <button 
+                                        <button
                                             onClick={() => toggleSection(key)}
                                             className="w-full flex items-center justify-between p-4 hover:bg-slate-50 rounded-t-xl transition-colors"
                                         >
@@ -461,15 +461,15 @@ export default function App() {
                                                         {index > 0 && (
                                                             <div className="flex justify-center my-3 relative">
                                                                 <div className="absolute top-1/2 left-0 w-full h-px bg-slate-200 -z-10"></div>
-                                                                <LogicSwitch 
-                                                                    value={filterState.conditions[index-1].logic || 'AND'} 
+                                                                <LogicSwitch
+                                                                    value={filterState.conditions[index-1].logic || 'AND'}
                                                                     onChange={(val) => {
                                                                         setFilters(prev => {
                                                                             const nc = [...prev[key].conditions];
                                                                             nc[index-1].logic = val;
                                                                             return { ...prev, [key]: { conditions: nc } };
                                                                         })
-                                                                    }} 
+                                                                    }}
                                                                 />
                                                             </div>
                                                         )}
@@ -479,7 +479,7 @@ export default function App() {
                                                                 {renderConditionInput(key, condition, index)}
                                                             </div>
                                                             {filterState.conditions.length > 1 && (
-                                                                <button 
+                                                                <button
                                                                     onClick={() => removeCondition(key, index)}
                                                                     className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors"
                                                                 >
@@ -489,11 +489,11 @@ export default function App() {
                                                         </div>
                                                     </div>
                                                 ))}
-                                                
-                                                <Button 
-                                                    variant="ghost" 
-                                                    size="sm" 
-                                                    onClick={() => addCondition(key)} 
+
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => addCondition(key)}
                                                     className="w-full border border-dashed border-slate-300 hover:border-primary-400 text-slate-500 hover:text-primary-600"
                                                     icon={<Plus size={14} />}
                                                 >
@@ -515,9 +515,9 @@ export default function App() {
                                     <h3 className="font-bold text-slate-800 text-lg">I tuoi Filtri Salvati</h3>
                                     <p className="text-sm text-slate-500">Seleziona un filtro esistente o creane uno nuovo.</p>
                                 </div>
-                                <Button 
-                                    variant="primary" 
-                                    onClick={handleCreateNew} 
+                                <Button
+                                    variant="primary"
+                                    onClick={handleCreateNew}
                                     icon={<PlusCircle size={18} />}
                                     className="shadow-lg shadow-primary-500/20"
                                 >
@@ -542,7 +542,7 @@ export default function App() {
                                                     <Star size={18} fill={favorites.includes(filter.id) ? "currentColor" : "none"} />
                                                 </button>
                                             </div>
-                                            
+
                                             {/* Description display */}
                                             {filter.description && (
                                                 <div className="flex items-start gap-1.5 text-slate-500 mb-3 text-sm bg-slate-50 p-2 rounded-md">
@@ -564,7 +564,7 @@ export default function App() {
                             </div>
                         </div>
                     )}
-                    
+
                     {activeTab === 'favorites' && (
                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
                             {savedFilters.filter(f => favorites.includes(f.id)).length === 0 ? (
@@ -600,8 +600,8 @@ export default function App() {
                 <div className="flex items-center gap-3">
                     <span className="text-sm text-slate-500 mr-2">{getActiveCount} criteri selezionati</span>
                     <Button variant="secondary">Annulla</Button>
-                    <Button 
-                        variant="primary" 
+                    <Button
+                        variant="primary"
                         onClick={() => alert('Filtri applicati!\n' + JSON.stringify(filters, null, 2))}
                         className="shadow-lg shadow-primary-500/20"
                         icon={<CheckCircle2 size={18} />}
@@ -625,7 +625,7 @@ export default function App() {
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Nome del filtro</label>
                                 <Input value={newFilterName} onChange={setNewFilterName} placeholder="Es. Task urgenti Mario" />
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Descrizione (opzionale)</label>
                                 <textarea

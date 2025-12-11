@@ -4,10 +4,10 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin"
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin"
 import { ListPlugin } from "@lexical/react/LexicalListPlugin"
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
-import { 
-  FORMAT_TEXT_COMMAND, 
+import {
+  FORMAT_TEXT_COMMAND,
   FORMAT_ELEMENT_COMMAND,
-  UNDO_COMMAND, 
+  UNDO_COMMAND,
   REDO_COMMAND,
   $getSelection,
   $isRangeSelection,
@@ -16,7 +16,7 @@ import {
 } from "lexical"
 import { $findMatchingParent, mergeRegister } from "@lexical/utils"
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link"
-import { 
+import {
   INSERT_ORDERED_LIST_COMMAND,
   INSERT_UNORDERED_LIST_COMMAND,
   $isListNode,
@@ -31,11 +31,11 @@ import { $setBlocksType } from "@lexical/selection"
 import { $createCodeNode } from "@lexical/code"
 import { $createMentionNode } from "./nodes/MentionNode"
 import { $createTextNode } from "lexical"
-import { 
-  Bold, 
-  Italic, 
-  Underline, 
-  Strikethrough, 
+import {
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
   Link as LinkIcon,
   Undo,
   Redo,
@@ -128,7 +128,7 @@ export function Plugins({
       setIsItalic(selection.hasFormat('italic'))
       setIsUnderline(selection.hasFormat('underline'))
       setIsStrikethrough(selection.hasFormat('strikethrough'))
-      
+
       // Controlla se è un link
       const node = selection.anchor.getNode()
       const parent = node.getParent()
@@ -483,12 +483,12 @@ export function Plugins({
         <LinkPlugin />
         <AutoLinkPlugin />
         <ListPlugin />
-        
+
         {/* Plugin UI floating */}
         {floatingAnchorElem && (
           <>
-            <FloatingLinkEditorPlugin 
-              anchorElem={floatingAnchorElem} 
+            <FloatingLinkEditorPlugin
+              anchorElem={floatingAnchorElem}
               isLinkEditMode={isLinkEditMode}
               setIsLinkEditMode={setIsLinkEditMode}
             />
@@ -537,7 +537,7 @@ export function Plugins({
         {showMentions && <MentionsPlugin mentionUsers={mentionUsers} />}
       </div>
 
-       
+
       {/* Azioni */}
       <ActionsPlugin>
         <div className="clear-both flex items-center gap-2 border-t p-1">

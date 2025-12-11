@@ -11,10 +11,10 @@ import { AtSign } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 
-export function MentionsToolbarPlugin({ 
-  onMentionTrigger 
-}: { 
-  onMentionTrigger?: () => void 
+export function MentionsToolbarPlugin({
+  onMentionTrigger
+}: {
+  onMentionTrigger?: () => void
 } = {}) {
   const [editor] = useLexicalComposerContext()
   const [isMentionMode, setIsMentionMode] = useState(false)

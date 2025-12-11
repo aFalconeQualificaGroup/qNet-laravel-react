@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { 
-  DndContext, 
+import {
+  DndContext,
   closestCorners,
   DragEndEvent,
   DragOverEvent,
@@ -62,14 +62,14 @@ export function KanbanBoard<TData = any>({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { props } = usePage<Record<string, any>>();
-  
+
   const data = props[lazyPropName] as TData | undefined;
- 
+
   useEffect(() => {
     if (!data) {
       setIsLoading(true);
       setError(null);
-      
+
       router.reload({
         only: [lazyPropName],
         data: {
@@ -112,7 +112,7 @@ export function KanbanBoard<TData = any>({
   useEffect(() => {
     // Non filtrare durante il drag per evitare freeze
     if (activeId) return;
-    
+
     if (!searchQuery.trim()) {
       setFilteredBoard(board);
       return;
@@ -151,7 +151,7 @@ export function KanbanBoard<TData = any>({
   function handleDragStart(event: DragStartEvent) {
     const activeId = event.active.id as string;
     setActiveId(activeId);
-    
+
     // Trova e salva la colonna di origine
     const sourceColumn = board.columns.find((col) =>
       col.cards.some((card) => card.id === activeId)
@@ -175,10 +175,10 @@ export function KanbanBoard<TData = any>({
     }
 
     const overId = over.id as string;
-    
+
     // Trova la colonna di destinazione
     let overColumn = filteredBoard.columns.find((col) => col.id === overId);
-    
+
     if (!overColumn) {
       overColumn = filteredBoard.columns.find((col) =>
         col.cards.some((card) => card.id === overId)
@@ -192,15 +192,15 @@ export function KanbanBoard<TData = any>({
 
   function handleDragEnd(event: DragEndEvent) {
     const { active } = event;
-    
+
     if (active && sourceColumnId && targetColumnId && sourceColumnId !== targetColumnId) {
       const activeId = active.id as string;
-      
+
       const activeColumn = filteredBoard.columns.find((col) =>
         col.cards.some((card) => card.id === activeId)
       );
       const overColumn = filteredBoard.columns.find((col) => col.id === targetColumnId);
-      
+
       if (activeColumn && overColumn) {
         const newDueDate = getNewDate(overColumn.id);
         const activeIndex = activeColumn.cards.findIndex((card) => card.id === activeId);
@@ -224,7 +224,7 @@ export function KanbanBoard<TData = any>({
         const newBoard = { columns: newColumns };
         setBoard(newBoard);
         setFilteredBoard(newBoard);
-        
+
         if (onCardMoved) {
           onCardMoved(
             activeId,
@@ -235,7 +235,7 @@ export function KanbanBoard<TData = any>({
         }
       }
     }
-    
+
     setActiveId(null);
     setSourceColumnId(null);
     setTargetColumnId(null);
@@ -261,8 +261,8 @@ export function KanbanBoard<TData = any>({
       <Alert variant="destructive" className="m-4">
         <AlertDescription className="flex items-center justify-between">
           <span>⚠️ {error}</span>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => router.reload({ only: [lazyPropName] })}
           >
@@ -284,7 +284,7 @@ export function KanbanBoard<TData = any>({
           className="w-full px-3 sm:px-4 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm sm:text-base"
         />
       </div>
-      
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -298,7 +298,7 @@ export function KanbanBoard<TData = any>({
             <Column key={column.id} column={column} />
           ))}
         </div>
-        
+
         <DragOverlay>
           {activeId ? (
             (() => {

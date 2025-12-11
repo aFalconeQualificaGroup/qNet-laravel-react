@@ -18,12 +18,12 @@ type ClientDropdownProps = {
     title?: string;
 };
 
-export const ClientDropdown: React.FC<ClientDropdownProps> = ({ 
-    clients = [], 
-    value, 
-    onChange, 
+export const ClientDropdown: React.FC<ClientDropdownProps> = ({
+    clients = [],
+    value,
+    onChange,
     onFilter,
-    title = "Seleziona cliente" 
+    title = "Seleziona cliente"
 }) => {
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState("");
@@ -47,7 +47,7 @@ export const ClientDropdown: React.FC<ClientDropdownProps> = ({
         setSearch("");
     };
 
-    const filteredClients = search 
+    const filteredClients = search
         ? clients.filter(c => c.name.toLowerCase().includes(search.toLowerCase()))
         : clients;
 
@@ -92,7 +92,7 @@ export const ClientDropdown: React.FC<ClientDropdownProps> = ({
                     ) : (
                         filteredClients.map((client) => {
                             const isSelected = String(client.id) === value;
-                            
+
                             return (
                                 <button
                                     key={client.id}

@@ -5,7 +5,7 @@ import { AllEnterpriseModule, LicenseManager } from "ag-grid-enterprise";
 import { useMemo, useEffect, useState, useCallback } from 'react';
 import axios from "axios";
 import AGGridLicense from './license';
-  
+
 ModuleRegistry.registerModules([ AllEnterpriseModule ]);
 LicenseManager.setLicenseKey(AGGridLicense);
 

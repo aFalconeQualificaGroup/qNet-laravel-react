@@ -404,6 +404,5 @@ class Order extends Model {
     public function getDetailAttribute() {
         return $this->title;
     }
-    
 
 }

@@ -24,7 +24,7 @@ export const TaskPreview: React.FC<TaskPreviewProps> = ({
     const formatDate = (date: string | null) => {
         const { dateStr, timeStr } = formatDateParts(date);
         if (!dateStr) return null;
-        
+
         if (timeStr) {
             return (
                 <>
@@ -33,7 +33,7 @@ export const TaskPreview: React.FC<TaskPreviewProps> = ({
                 </>
             );
         }
-        
+
         return <span className="date-display">{dateStr}</span>;
     };
 

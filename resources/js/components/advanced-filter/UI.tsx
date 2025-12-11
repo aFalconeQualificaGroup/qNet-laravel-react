@@ -2,7 +2,7 @@ import React from 'react';
 
 // --- Badges ---
 export const Badge = ({ children, className = '', onClick }: { children?: React.ReactNode, className?: string, onClick?: (e: React.MouseEvent) => void }) => (
-    <span 
+    <span
         onClick={onClick}
         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-700 cursor-pointer hover:bg-primary-200 transition-colors ${className}`}>
         {children}
@@ -10,25 +10,25 @@ export const Badge = ({ children, className = '', onClick }: { children?: React.
 );
 
 // --- Buttons ---
-export const Button = ({ 
-    variant = 'primary', 
-    size = 'md', 
-    children, 
-    onClick, 
+export const Button = ({
+    variant = 'primary',
+    size = 'md',
+    children,
+    onClick,
     className = '',
     icon,
     disabled
-}: { 
-    variant?: 'primary' | 'secondary' | 'ghost' | 'danger'; 
-    size?: 'sm' | 'md'; 
-    children?: React.ReactNode; 
+}: {
+    variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+    size?: 'sm' | 'md';
+    children?: React.ReactNode;
     onClick?: () => void;
     className?: string;
     icon?: React.ReactNode;
     disabled?: boolean;
 }) => {
     const base = "inline-flex items-center justify-center font-medium rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed";
-    
+
     const variants = {
         primary: "bg-primary-600 text-white hover:bg-primary-700 shadow-sm focus:ring-primary-500 border border-transparent",
         secondary: "bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 shadow-sm focus:ring-slate-400",
@@ -42,8 +42,8 @@ export const Button = ({
     };
 
     return (
-        <button 
-            className={`${base} ${variants[variant]} ${sizes[size]} ${className}`} 
+        <button
+            className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}
             onClick={onClick}
             disabled={disabled}
         >

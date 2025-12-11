@@ -47,7 +47,7 @@ class TasksController extends Controller
             'reportmod',             // Report
             'taskReminder',          // Promemoria
         ])->paginate(15);
-        
+
         $year = $request->input('year');
         $date = $request->input('date');
         return Inertia::render("Tasks/Index", [
@@ -63,7 +63,6 @@ class TasksController extends Controller
      */
     public function create(Request $request)
     {
-        
         if ($request->has('search_users')) {
             $query = $request->input('search_users');
 
@@ -296,11 +295,11 @@ class TasksController extends Controller
     {
         try {
             $task = Task::findOrFail($id);
-            
+
             if ($request->has('endtask')) {
                 $task->endtask = $request->input("endtask");
             }
-            
+
             $task->save();
 
             return back()->with('success', 'Task aggiornato con successo!');

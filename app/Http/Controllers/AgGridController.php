@@ -167,12 +167,10 @@ class AgGridController extends Controller
             }
         }
 
-        $this->cols = FieldsTable::where('controller', $entity)
+        return FieldsTable::where('controller', $entity)
             ->where('id_user', Auth::id())
             ->whereIn('text', array_keys($model_columns))
             ->orderBy('position')
             ->get();
-
-        return $this->cols;
     }
 }

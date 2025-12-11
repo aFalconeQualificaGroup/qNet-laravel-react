@@ -15,7 +15,7 @@ interface OccurrencePreviewProps {
   config: Partial<TaskRepeatConfig>;
   startTime: string;
   endTime: string;
- 
+
 }
 
 export const OccurrencePreview: React.FC<OccurrencePreviewProps> = React.memo(({
@@ -23,9 +23,9 @@ export const OccurrencePreview: React.FC<OccurrencePreviewProps> = React.memo(({
   startTime,
   endTime,
 }) => {
-  
+
   console.log('🔄 OccurrencePreview RENDER', { config, startTime, endTime });
-  
+
   const [showAll, setShowAll] = useState(false);
 
   const onToggleShowAll = () => {
@@ -36,7 +36,7 @@ export const OccurrencePreview: React.FC<OccurrencePreviewProps> = React.memo(({
    // Memoized calculations
   const nextOccurrences = useMemo(() => calculateOccurrences(config), [config]);
   const summary = useMemo(() => getRepeatSummary(config), [config]);
-  
+
   const displayCount = showAll ? nextOccurrences.length : Math.min(10, nextOccurrences.length);
 
   if (nextOccurrences.length === 0) return null;

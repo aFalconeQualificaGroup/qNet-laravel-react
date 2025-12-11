@@ -13,9 +13,9 @@ import { MentionNode } from "./nodes/MentionNode"
 
 export const nodes: ReadonlyArray<Klass<LexicalNode> | LexicalNodeReplacement> =
   [
-    HeadingNode, 
-    ParagraphNode, 
-    TextNode, 
+    HeadingNode,
+    ParagraphNode,
+    TextNode,
     QuoteNode,
     LinkNode,
     AutoLinkNode,
