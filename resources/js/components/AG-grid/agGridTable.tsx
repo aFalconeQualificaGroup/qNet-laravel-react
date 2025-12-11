@@ -53,7 +53,7 @@ const AGGridTable = ({ entity, rowData}: AGGridTableProps) => {
     };
     const onColumnVisible = (e) => {
         e.columns.forEach((column) => {
-            axios.get('/aggrid-update-column-visible', { params: { entity, item: column.getColId(), visible: e.visible } });
+            axios.get('/aggrid-update-column-visible', { params: { entity, item: column.getColId(), visible: e.visible == true ? 1 : 0 } });
         });
     };
     const onColumnResized = (e) => {
@@ -81,10 +81,10 @@ const AGGridTable = ({ entity, rowData}: AGGridTableProps) => {
         <div className='w-full h-[500px]'>
             <AgGridReact
                 {...settings}
-                localeText="AG_GRID_LOCALE_IT"
-                onColumnMoved="onColumnMoved"
-                onColumnVisible="onColumnVisible"
-                onColumnResized="onColumnResized"
+                localeText={AG_GRID_LOCALE_IT}
+                onColumnMoved={onColumnMoved}
+                onColumnVisible={onColumnVisible}
+                onColumnResized={onColumnResized}
             />
         </div>
     );

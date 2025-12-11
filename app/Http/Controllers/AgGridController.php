@@ -124,6 +124,7 @@ class AgGridController extends Controller
         $field = str_replace('callback_', '', $item);
         $field = str_replace('-', '.', $field);
 
+
         FieldsTable::where('controller', $entity)
             ->where('text', $field)
             ->where('id_user', Auth::id())

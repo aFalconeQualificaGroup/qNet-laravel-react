@@ -54,7 +54,7 @@ class TasksController extends Controller
             'tasks' => $tasks,
             'tasksByDeadline' => Inertia::lazy(fn () => $this->getTasksByDeadlineData($year)),
             'tasksForCalendarView' => Inertia::lazy(fn () => $this->getTasksForCalendarView($date)),
-            'tasksAgGridData' => Inertia::lazy( fn () => $this->getTasksAgGridConfig($request) ),
+            'tasksAgGridData' => Inertia::lazy( fn () => $this->getTasksAgGridConfig($request)),
         ]);
     }
 
