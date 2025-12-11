@@ -1,8 +1,7 @@
 import { AG_GRID_LOCALE_IT } from "@ag-grid-community/locale";
 import { AgGridReact } from 'ag-grid-react';
-import { ModuleRegistry } from 'ag-grid-community';
+import { ModuleRegistry, ColumnMovedEvent, ColumnVisibleEvent, ColumnResizedEvent } from 'ag-grid-community';
 import { AllEnterpriseModule, LicenseManager } from "ag-grid-enterprise";
-import { getColumnDefs } from './columnDefs';
 import { useMemo, useEffect, useState } from 'react';
 import axios from "axios";
 import AGGridLicense from './license';
@@ -19,7 +18,7 @@ type ColumnDef = any[];
 
 const AGGridTable = ({ entity, rowData}: AGGridTableProps) => {
 
-    const [settings, setSettings] = useState(null);
+    const [settings, setSettings] = useState<any | null>(null);
 
     useEffect(() => {
         axios.get('/aggrid-settings', { params: { entity } }).then(res => {
@@ -34,7 +33,7 @@ const AGGridTable = ({ entity, rowData}: AGGridTableProps) => {
     console.log(settings);
 
     const myDatasource = {
-        getRows: params => {
+        getRows: (params: any) => {
             axios.get('/tasks/rows', { params: { params: params.request } }).then(res => {
                 console.log(res);
                 params.success({
@@ -45,37 +44,35 @@ const AGGridTable = ({ entity, rowData}: AGGridTableProps) => {
         }
     }
 
-    const onColumnMoved = (e) => {
+    const onColumnMoved = (e: ColumnMovedEvent) => {
         const allColumns = e.api.getAllGridColumns();
         const colOrder = allColumns.map(col => col.getColId());
         console.log(colOrder);
         axios.get('/aggrid-update-columns-sort', { params: { entity, list: colOrder } });
     };
-    const onColumnVisible = (e) => {
-        e.columns.forEach((column) => {
+    const onColumnVisible = (e: ColumnVisibleEvent) => {
+        e.columns?.forEach((column) => {
             axios.get('/aggrid-update-column-visible', { params: { entity, item: column.getColId(), visible: e.visible == true ? 1 : 0 } });
         });
     };
-    const onColumnResized = (e) => {
+    const onColumnResized = (e: ColumnResizedEvent) => {
         console.log(e);
         if (e.source == 'autosizeColumns') {
-            var columnWidth = {};
+            var columnWidth: Record<string, number> = {};
 
-            e.columns.forEach((col) => {
-                columnWidth[col.colId] = col.actualWidth;
+            e.columns?.forEach((col) => {
+                columnWidth[col.getColId()] = col.getActualWidth();
             });
 
             axios.post('/aggrid-save-column-width', { entity, columnWidth });
         }
-        else {
-            var columnWidth = {};
-            columnWidth[e.column.colId] = e.column.actualWidth;
+        else if (e.column) {
+            var columnWidth: Record<string, number> = {};
+            columnWidth[e.column.getColId()] = e.column.getActualWidth();
 
             axios.post('/aggrid-save-column-width', { entity, columnWidth });
         }
     };
-
-    settings.serverSideDatasource = myDatasource;
 
     return (
         <div className='w-full h-[500px]'>
@@ -85,6 +82,7 @@ const AGGridTable = ({ entity, rowData}: AGGridTableProps) => {
                 onColumnMoved={onColumnMoved}
                 onColumnVisible={onColumnVisible}
                 onColumnResized={onColumnResized}
+                serverSideDatasource={myDatasource}
             />
         </div>
     );
