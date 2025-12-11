@@ -326,8 +326,13 @@ class TasksController extends Controller
         //
     }
 
-    public function rows()
+    public function rows(Request $request)
     {
+        $params = $request->input('params');
+
+        $start = $params['startRow'];
+        $end = $params['endRow'];
+
         $query = Task::with([
             'customer',              // Cliente (Customer) - nome
             'order',                 // Ordine - title
@@ -353,11 +358,13 @@ class TasksController extends Controller
             'taskReminder',          // Promemoria
         ]);
 
-        $tasks = $query->limit(200)->get();
+        $rowCount = $query->count();
+
+        $tasks = $query->offset($start)->limit($end - $start)->get();
 
         return [
             'rows' => $tasks,
-            'rowCount' => $query->count(),
+            'rowCount' => $rowCount,
         ];
     }
 

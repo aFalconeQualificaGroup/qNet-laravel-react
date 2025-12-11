@@ -40,6 +40,34 @@ class AgGridController extends Controller
 
         return response()->json([
             'settings' => [
+                'rowSelection' => [
+                    'mode' => 'multiRow',
+                ],
+                'enableFilterHandlers' => true,
+                'sideBar' => [
+                    'toolPanels' => [
+                        [
+                            'id' => 'columns',
+                            'labelDefault' => 'Columns',
+                            'labelKey' => 'columns',
+                            'iconKey' => 'columns',
+                            'toolPanel' => 'agColumnsToolPanel',
+                            'toolPanelParams' => [
+                                'suppressRowGroups' => true,
+                                'suppressValues' => true,
+                                'suppressPivots' => true,
+                                'suppressPivotMode' => true,
+                            ],
+                        ],
+                        [
+                            'id' => 'filters-new',
+                            'labelDefault' => 'Filters',
+                            'labelKey' => 'filters',
+                            'iconKey' => 'filter',
+                            'toolPanel' => 'agNewFiltersToolPanel',
+                        ],
+                    ],
+                ],
                 'suppressContextMenu' => true,
                 'stopEditingWhenCellsLoseFocus' => true,
                 'tooltipShowDelay' => 500,
@@ -57,5 +85,51 @@ class AgGridController extends Controller
                 'columnDefs' => $columnDefs,
             ],
         ]);
+    }
+
+    public function updateColumnsSort(Request $request)
+    {
+        $entity = $request->input('entity');
+        $list = $request->input('list');
+
+        foreach ($list as $i => $item) {
+            $field = str_replace('callback_', '', $item);
+            $field = str_replace('-', '.', $field);
+
+            FieldsTable::where('controller', $entity)
+                ->where('text', $field)
+                ->where('id_user', Auth::id())
+                ->update(['position' => $i]);
+        }
+    }
+
+    public function updateColumnVisible(Request $request)
+    {
+        $entity = $request->input('entity');
+        $item = $request->input('item');
+        $visible = ($request->input('visible')) ? 1 : 0;
+
+        $field = str_replace('callback_', '', $item);
+        $field = str_replace('-', '.', $field);
+
+        FieldsTable::where('controller', $entity)
+            ->where('text', $field)
+            ->where('id_user', Auth::id())
+            ->update(['visible' => $visible]);
+    }
+
+    public function saveColumnWidth(Request $request)
+    {
+        $entity = $request->input('entity');
+        $columnWidth = $request->input('columnWidth');
+
+        if (!empty(array_filter($columnWidth))) {
+            foreach ($columnWidth as $field => $width) {
+                FieldsTable::where('controller', $entity)
+                    ->where('text', $field)
+                    ->where('id_user', Auth::id())
+                    ->update(['width' => $width]);
+            }
+        }
     }
 }
