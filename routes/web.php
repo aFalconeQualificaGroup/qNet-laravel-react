@@ -17,7 +17,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
+    Route::get('tasks/rows', [App\Http\Controllers\TasksController::class, 'rows']);
+
     Route::resource("tasks", App\Http\Controllers\TasksController::class);
+
+    Route::get('aggrid-settings', [App\Http\Controllers\AgGridController::class, 'settings']);
+    Route::get('aggrid-update-columns-sort', [App\Http\Controllers\AgGridController::class, 'updateColumnsSort']);
+    Route::get('aggrid-update-column-visible', [App\Http\Controllers\AgGridController::class, 'updateColumnVisible']);
+    Route::post('aggrid-save-column-width', [App\Http\Controllers\AgGridController::class, 'saveColumnWidth']);
 });
 
 require __DIR__.'/settings.php';
