@@ -9,6 +9,7 @@ import TaskDataParsing, { OriginalTaskType } from '@/components/AG-grid/helper';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TasksKanbanBoard } from '@/components/kanban-board/TasksKanbanBoard';
 import { TaskCalendar } from '@/components/calendar/TaskCalendar';
+import axios from "axios";
 
 interface PaginationLink {
     url: string | null;
@@ -42,19 +43,18 @@ export interface TasksByDeadline {
 
 export default function Index({ tasks }: { tasks: TasksPagination }) {
     const [activeTab, setActiveTab] = useState('table');
-    
-    const handlePageChange = (url: string | null) => {
-        if (url) {
-            router.visit(url);
-        }
-    };
+    const [settings, setSettings] = useState<Object | null>(null);
+
+    useEffect(() => {
+        axios.get('/aggrid-settings', { params: { entity: 'tasks' } }).then(res => {
+            setSettings(res.data.settings);
+        });
+    }, []);
 
     useEffect(() => {
         console.log('Tasks page mounted with tasks: ', tasks);
     }, []);
 
-    const dataForAgGrid = TaskDataParsing(tasks.data);
-    
     return (
         <>
             <Head title="Tasks" />
@@ -91,7 +91,7 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
                         </TabsList>
                     
                         <TabsContent value="table">
-                            <AGGridTable entity="tasks" rowData={dataForAgGrid} />
+                            {settings && <AGGridTable entity="tasks" settings={settings} />}
                         </TabsContent>
                         
                         <TabsContent value="kanban">
