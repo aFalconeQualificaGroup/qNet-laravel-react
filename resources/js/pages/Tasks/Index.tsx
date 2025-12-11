@@ -49,17 +49,6 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
         }
     };
 
-    const getStatusBadge = (status: number) => {
-        const statusMap: Record<number, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-            0: { label: 'Aperto', variant: 'default' },
-            1: { label: 'In corso', variant: 'secondary' },
-            2: { label: 'Completato', variant: 'outline' },
-        };
-        
-        const statusInfo = statusMap[status] || { label: 'Sconosciuto', variant: 'outline' };
-        return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
-    };
-
     useEffect(() => {
         console.log('Tasks page mounted with tasks: ', tasks);
     }, []);

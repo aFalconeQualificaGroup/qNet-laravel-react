@@ -54,6 +54,7 @@ class TasksController extends Controller
             'tasks' => $tasks,
             'tasksByDeadline' => Inertia::lazy(fn () => $this->getTasksByDeadlineData($year)),
             'tasksForCalendarView' => Inertia::lazy(fn () => $this->getTasksForCalendarView($date)),
+            'tasksAgGridData' => Inertia::lazy( fn () => $this->getTasksAgGridConfig($request) ),
         ]);
     }
 
@@ -103,182 +104,175 @@ class TasksController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {   
-        
-        $input = $request->all();
+    {
+        try {
+            $input = $request->all();
 
-        $priority = null;
-        if ($input['form']['priority'] == 'low') {
-            $priority = 1;
-        }
-        elseif ($input['form']['priority'] == 'normal') {
-            $priority = 2;
-        }
-        elseif ($input['form']['priority'] == 'high') {
-            $priority = 3;
-        }
-        elseif ($input['form']['priority'] == 'urgent') {
-            $priority = 4;
-        }
-
-        $task_type = null;
-        if ($input['form']['task_type'] == 'call') {
-            $task_type = 'C';
-        }
-        elseif ($input['form']['task_type'] == 'meeting') {
-            $task_type = 'I';
-        }
-        elseif ($input['form']['task_type'] == 'todo') {
-            $task_type = 'T';
-        }
-
-        $task = Task::create([
-            'title' => $input['form']['title'],
-            'description' => $input['form']['description'],
-            'typetask' => $task_type,
-            'datatask' => null,
-            'datataskend' => null,
-            'endtask' => $input['form']['due_date'],
-            'timetask' => null,
-            'timetaskend' => null,
-            'feedback_required' => ($input['form']['feedback_required']) ? 1 : 0,
-            'priority' => $priority,
-            'customer_id' => $input['form']['client_id'],
-            'assigned_by' => Auth::id(),
-        ]);
-
-        if ($input['form']['repeat_task']) {
-            $frequency = null;
-            if ($input['repeatConfig']['repeatType'] == 'daily') {
-                $frequency = 'day';
-            }
-            elseif ($input['repeatConfig']['repeatType'] == 'weekly') {
-                $frequency = 'week';
-            }
-            elseif ($input['repeatConfig']['repeatType'] == 'monthly') {
-                $frequency = 'month';
-            }
-            elseif ($input['repeatConfig']['repeatType'] == 'yearly') {
-                $frequency = 'year';
+            $priority = null;
+            if ($input['form']['priority'] == 'low') {
+                $priority = 1;
+            } elseif ($input['form']['priority'] == 'normal') {
+                $priority = 2;
+            } elseif ($input['form']['priority'] == 'high') {
+                $priority = 3;
+            } elseif ($input['form']['priority'] == 'urgent') {
+                $priority = 4;
             }
 
-            $end_type = null;
-            if ($input['repeatConfig']['endType'] == 'never') {
-                $end_type = 'no';
-            }
-            elseif ($input['repeatConfig']['endType'] == 'date') {
-                $end_type = 'date';
-            }
-            elseif ($input['repeatConfig']['endType'] == 'occurrences') {
-                $end_type = 'iterations';
+            $task_type = null;
+            if ($input['form']['task_type'] == 'call') {
+                $task_type = 'C';
+            } elseif ($input['form']['task_type'] == 'meeting') {
+                $task_type = 'I';
+            } elseif ($input['form']['task_type'] == 'todo') {
+                $task_type = 'T';
             }
 
-            TaskReminder::create([
-                'task_id' => $task->id,
-                'active' => true,
-                'frequency' => $frequency,
-                'end_type' => $end_type,
-                'end_date' => (isset($input['repeatConfig']['endDate'])) ? $input['repeatConfig']['endDate'] : null,
-                'end_iterations_number' => (isset($input['repeatConfig']['occurrences'])) ? $input['repeatConfig']['occurrences'] : null,
+            $task = Task::create([
+                'title' => $input['form']['title'],
+                'description' => $input['form']['description'],
+                'typetask' => $task_type,
+                'datatask' => null,
+                'datataskend' => null,
+                'endtask' => $input['form']['due_date'],
+                'timetask' => null,
+                'timetaskend' => null,
+                'feedback_required' => ($input['form']['feedback_required']) ? 1 : 0,
+                'priority' => $priority,
+                'customer_id' => $input['form']['client_id'],
+                'assigned_by' => Auth::id(),
             ]);
-        }
 
-        if (isset($input['form']['assignee_ids'])) {
-            if (is_array($input['form']['assignee_ids'])) {
-                foreach ($input['form']['assignee_ids'] as $user_id) {
-                    TaskAssigned::create([
-                        'task_id' => $task->id,
-                        'user_id' => $user_id,
-                    ]);
+            if ($input['form']['repeat_task']) {
+                $frequency = null;
+                if ($input['repeatConfig']['repeatType'] == 'daily') {
+                    $frequency = 'day';
+                } elseif ($input['repeatConfig']['repeatType'] == 'weekly') {
+                    $frequency = 'week';
+                } elseif ($input['repeatConfig']['repeatType'] == 'monthly') {
+                    $frequency = 'month';
+                } elseif ($input['repeatConfig']['repeatType'] == 'yearly') {
+                    $frequency = 'year';
                 }
+
+                $end_type = null;
+                if ($input['repeatConfig']['endType'] == 'never') {
+                    $end_type = 'no';
+                } elseif ($input['repeatConfig']['endType'] == 'date') {
+                    $end_type = 'date';
+                } elseif ($input['repeatConfig']['endType'] == 'occurrences') {
+                    $end_type = 'iterations';
+                }
+
+                TaskReminder::create([
+                    'task_id' => $task->id,
+                    'active' => true,
+                    'frequency' => $frequency,
+                    'end_type' => $end_type,
+                    'end_date' => (isset($input['repeatConfig']['endDate'])) ? $input['repeatConfig']['endDate'] : null,
+                    'end_iterations_number' => (isset($input['repeatConfig']['occurrences'])) ? $input['repeatConfig']['occurrences'] : null,
+                ]);
             }
-        }
 
-        if (isset($input['form']['observer_ids'])) {
-            if (is_array($input['form']['observer_ids'])) {
-                foreach ($input['form']['observer_ids'] as $user_id) {
-                    TaskObserver::create([
-                        'task_id' => $task->id,
-                        'user_id' => $user_id,
-                    ]);
-                }
-            }
-        }
-
-        if (isset($input['form']['documents'])) {
-            if (is_array($input['form']['documents'])) {
-                foreach ($input['form']['documents'] as $document) {
-                    $ext = $document->getClientOriginalExtension();
-                    $name = $document->getClientOriginalName();
-                    $hash = hash('md5', $name . Carbon::now());
-                    $document->storeAs('documents/' . app('tenant')->id . '/attachment/', $hash . '.' . $ext);
-
-                    TaskDocument::create([
-                        'task_id' => $task->id,
-                        'attachment' => $name,
-                        'hashfile' => $hash . '.' . $ext,
-                    ]);
-                }
-            }
-        }
-
-        if (is_array($input['form']['subtasks'])) {
-            foreach ($input['form']['subtasks'] as $subtask) {
-                $subtask_priority = null;
-                if ($subtask['priority'] == 'low') {
-                    $subtask_priority = 1;
-                }
-                elseif ($subtask['priority'] == 'normal') {
-                    $subtask_priority = 2;
-                }
-                elseif ($subtask['priority'] == 'high') {
-                    $subtask_priority = 3;
-                }
-                elseif ($subtask['priority'] == 'urgent') {
-                    $subtask_priority = 4;
-                }
-
-                $subtask_type = null;
-                if ($subtask['task_type'] == 'call') {
-                    $subtask_type = 'C';
-                }
-                elseif ($subtask['task_type'] == 'meeting') {
-                    $subtask_type = 'I';
-                }
-                elseif ($subtask['task_type'] == 'todo') {
-                    $subtask_type = 'T';
-                }
-
-                $subtask_id = Task::create([
-                    'title' => $subtask['title'],
-                    'description' => $subtask['description'],
-                    'typetask' => $subtask_type,
-                    'priority' => $subtask_priority,
-                    'parent_id' => $task->id,
-                ])->id;
-
-                if (isset($subtask['assignee_ids'])) {
-                    if (is_array($subtask['assignee_ids'])) {
-                        foreach ($subtask['assignee_ids'] as $user_id) {
-                            TaskAssigned::create([
-                                'task_id' => $subtask_id,
-                                'user_id' => $user_id,
-                            ]);
-                        }
-                    }
-                }
-
-                if (isset($subtask['observer_ids'])) {
-                    if (is_array($subtask['observer_ids'])) {
-                        foreach ($subtask['observer_ids'] as $user_id) {
-                            TaskObserver::create([
-                                'task_id' => $subtask_id,
-                                'user_id' => $user_id,
-                            ]);
-                        }
+            if (isset($input['form']['assignee_ids'])) {
+                if (is_array($input['form']['assignee_ids'])) {
+                    foreach ($input['form']['assignee_ids'] as $user_id) {
+                        TaskAssigned::create([
+                            'task_id' => $task->id,
+                            'user_id' => $user_id,
+                        ]);
                     }
                 }
             }
+
+            if (isset($input['form']['observer_ids'])) {
+                if (is_array($input['form']['observer_ids'])) {
+                    foreach ($input['form']['observer_ids'] as $user_id) {
+                        TaskObserver::create([
+                            'task_id' => $task->id,
+                            'user_id' => $user_id,
+                        ]);
+                    }
+                }
+            }
+
+            if (isset($input['form']['documents'])) {
+                if (is_array($input['form']['documents'])) {
+                    foreach ($input['form']['documents'] as $document) {
+                        $ext = $document->getClientOriginalExtension();
+                        $name = $document->getClientOriginalName();
+                        $hash = hash('md5', $name . Carbon::now());
+                        $document->storeAs('documents/' . app('tenant')->id . '/attachment/', $hash . '.' . $ext);
+
+                        TaskDocument::create([
+                            'task_id' => $task->id,
+                            'attachment' => $name,
+                            'hashfile' => $hash . '.' . $ext,
+                        ]);
+                    }
+                }
+            }
+
+            if (is_array($input['form']['subtasks'])) {
+                foreach ($input['form']['subtasks'] as $subtask) {
+                    $subtask_priority = null;
+                    if ($subtask['priority'] == 'low') {
+                        $subtask_priority = 1;
+                    } elseif ($subtask['priority'] == 'normal') {
+                        $subtask_priority = 2;
+                    } elseif ($subtask['priority'] == 'high') {
+                        $subtask_priority = 3;
+                    } elseif ($subtask['priority'] == 'urgent') {
+                        $subtask_priority = 4;
+                    }
+
+                    $subtask_type = null;
+                    if ($subtask['task_type'] == 'call') {
+                        $subtask_type = 'C';
+                    } elseif ($subtask['task_type'] == 'meeting') {
+                        $subtask_type = 'I';
+                    } elseif ($subtask['task_type'] == 'todo') {
+                        $subtask_type = 'T';
+                    }
+
+                    $subtask_id = Task::create([
+                        'title' => $subtask['title'],
+                        'description' => $subtask['description'],
+                        'typetask' => $subtask_type,
+                        'priority' => $subtask_priority,
+                        'parent_id' => $task->id,
+                    ])->id;
+
+                    if (isset($subtask['assignee_ids'])) {
+                        if (is_array($subtask['assignee_ids'])) {
+                            foreach ($subtask['assignee_ids'] as $user_id) {
+                                TaskAssigned::create([
+                                    'task_id' => $subtask_id,
+                                    'user_id' => $user_id,
+                                ]);
+                            }
+                        }
+                    }
+
+                    if (isset($subtask['observer_ids'])) {
+                        if (is_array($subtask['observer_ids'])) {
+                            foreach ($subtask['observer_ids'] as $user_id) {
+                                TaskObserver::create([
+                                    'task_id' => $subtask_id,
+                                    'user_id' => $user_id,
+                                ]);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return back()->with('success', 'Task creato con successo!');
+
+        } catch (\Exception $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Errore durante la creazione del task: ' . $e->getMessage());
         }
     }
 
@@ -440,5 +434,30 @@ class TasksController extends Controller
             \Log::error('Errore nel recupero dei task per calendar view: ' . $e->getMessage());
             return [];
         }
+    }
+
+    private function getTasksAgGridConfig(Request $request)
+    {
+        // Esempio di configurazione di base per ag-Grid
+        $columnDefs = [
+            ['headerName' => 'ID', 'field' => 'id', 'sortable' => true, 'filter' => true],
+            ['headerName' => 'Title', 'field' => 'title', 'sortable' => true, 'filter' => true],
+            ['headerName' => 'Description', 'field' => 'description', 'sortable' => false, 'filter' => false],
+            ['headerName' => 'Due Date', 'field' => 'endtask', 'sortable' => true, 'filter' => 'agDateColumnFilter'],
+            ['headerName' => 'Priority', 'field' => 'priority', 'sortable' => true, 'filter' => true],
+            ['headerName' => 'Assigned To', 'field' => 'assigned_to', 'sortable' => true, 'filter' => true],
+        ];
+
+        // Puoi aggiungere logica per personalizzare la configurazione in base alla richiesta
+        return [
+            'columnDefs' => $columnDefs,
+            'defaultColDef' => [
+                'resizable' => true,
+                'flex' => 1,
+                'minWidth' => 100,
+            ],
+            'pagination' => true,
+            'paginationPageSize' => 15,
+        ];
     }
 }

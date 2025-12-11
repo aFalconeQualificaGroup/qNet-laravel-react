@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import * as tasksRoutes from '@/routes/tasks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { TaskRepeatConfig } from '@/components/generatedComponents/task-repeat';
 import { AddTaskForm } from '@/components/generatedComponents/task-generator';
 import { TaskForm } from '@/components/generatedComponents/task-repeat/types';
 import { router } from "@inertiajs/react";
+import { toast } from 'sonner';
 
 export type UserType = {
     filtered_users?: any[];
@@ -18,9 +19,21 @@ export type UserType = {
 
 function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], opportunitys_client=[], contacts_client=[] }: UserType) {
 
+    const { flash } = usePage<{ flash: { success?: string; error?: string } }>().props;
+
     useEffect(() => {
         console.log('Filtered Users:', filtered_users);
     }, [filtered_users]);
+
+    // Gestione flash messages
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success);
+        }
+        if (flash?.error) {
+            toast.error(flash.error);
+        }
+    }, [flash]);
 
     const today_date = new Date().toISOString();
 
@@ -98,10 +111,13 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
         // Invia i dati al backend
         post(tasksRoutes.store.url(), {
             onSuccess: () => {
-                console.log('Task creato con successo');
+                handleReset();
             },
             onError: (errors) => {
-                console.error('Errore creazione task:', errors);
+                // Gestisce solo gli errori di validazione
+                console.error('Errori di validazione:', errors);
+                const errorMessages = Object.values(errors).join('\n');
+                toast.error('Errori di validazione:\n' + errorMessages);
             },
         });
     }
