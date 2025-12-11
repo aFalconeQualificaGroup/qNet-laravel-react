@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\FieldsTable;
+use App\Utils\TasksHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -13,6 +14,13 @@ class AgGridController extends Controller
     {
         $entity = $request->input('entity');
 
+        $model_columns = [];
+        if ($entity == 'tasks') {
+            $model_columns = TasksHelper::getModelColumns();
+        }
+
+        $fields = $this->saveColumns($entity, $model_columns);
+
         $fields = FieldsTable::where('controller', $entity)
             ->where('id_user', Auth::id())
             ->orderBy('position')
@@ -21,6 +29,10 @@ class AgGridController extends Controller
         $columnDefs = [];
 
         foreach ($fields as $field) {
+            if (!isset($model_columns[$field->text])) {
+                continue;
+            }
+
             $columnDefs[] = [
                 'hide' => ($field->visible) ? false : true,
                 'suppressMovable' => false,
@@ -131,5 +143,35 @@ class AgGridController extends Controller
                     ->update(['width' => $width]);
             }
         }
+    }
+
+    public function saveColumns($entity, $model_columns)
+    {
+        $cols = FieldsTable::where('controller', $entity)
+            ->where('id_user', Auth::id())
+            ->pluck('text')
+            ->toArray();
+        $cols_mancanti = array_diff(array_keys($model_columns), $cols);
+
+        if ($cols_mancanti) {
+            foreach ($cols_mancanti as $column) {
+                FieldsTable::create([
+                    'text'=> $column,
+                    'text_visible' => $model_columns[$column],
+                    'controller' => $entity,
+                    'id_user' => Auth::id(),
+                    'visible' => 1,
+                    'orderable' => 0,
+                ]);
+            }
+        }
+
+        $this->cols = FieldsTable::where('controller', $entity)
+            ->where('id_user', Auth::id())
+            ->whereIn('text', array_keys($model_columns))
+            ->orderBy('position')
+            ->get();
+
+        return $this->cols;
     }
 }

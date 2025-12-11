@@ -31,6 +31,8 @@ const AGGridTable = ({ entity, rowData}: AGGridTableProps) => {
         return <div>Caricamento...</div>;
     }
 
+    console.log(settings);
+
     const myDatasource = {
         getRows: params => {
             axios.get('/tasks/rows', { params: { params: params.request } }).then(res => {
@@ -43,20 +45,18 @@ const AGGridTable = ({ entity, rowData}: AGGridTableProps) => {
         }
     }
 
-    settings.localeText = AG_GRID_LOCALE_IT;
-    settings.serverSideDatasource = myDatasource;
-    settings.onColumnMoved = (e) => {
+    const onColumnMoved = (e) => {
         const allColumns = e.api.getAllGridColumns();
         const colOrder = allColumns.map(col => col.getColId());
         console.log(colOrder);
         axios.get('/aggrid-update-columns-sort', { params: { entity, list: colOrder } });
     };
-    settings.onColumnVisible = (e) => {
+    const onColumnVisible = (e) => {
         e.columns.forEach((column) => {
             axios.get('/aggrid-update-column-visible', { params: { entity, item: column.getColId(), visible: e.visible } });
         });
     };
-    settings.onColumnResized = (e) => {
+    const onColumnResized = (e) => {
         console.log(e);
         if (e.source == 'autosizeColumns') {
             var columnWidth = {};
@@ -75,12 +75,16 @@ const AGGridTable = ({ entity, rowData}: AGGridTableProps) => {
         }
     };
 
-    console.log(settings);
+    settings.serverSideDatasource = myDatasource;
 
     return (
         <div className='w-full h-[500px]'>
             <AgGridReact
                 {...settings}
+                localeText="AG_GRID_LOCALE_IT"
+                onColumnMoved="onColumnMoved"
+                onColumnVisible="onColumnVisible"
+                onColumnResized="onColumnResized"
             />
         </div>
     );
