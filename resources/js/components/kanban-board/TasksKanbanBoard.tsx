@@ -1,9 +1,10 @@
 import { KanbanBoard } from './kanbanBoard';
 import { KanbanCard } from './boardData';
 import type { OriginalTaskType } from '@/components/AG-grid/helper';
-import { useMemo, useCallback, useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useForm, usePage, router } from '@inertiajs/react';
 import tasksRoutes from '@/routes/tasks';
+import { toast } from 'sonner';
 
 interface TasksByDeadline {
     overdue: OriginalTaskType[];
@@ -27,11 +28,11 @@ export function TasksKanbanBoard() {
     useEffect(() => {
         if (flash?.success) {
             console.log('✅ Success:', flash.success);
-            // TODO: Implementare toast notification
+            toast.success(flash.success);
         }
         if (flash?.error) {
             console.error('❌ Error:', flash.error);
-            // TODO: Implementare toast notification
+            toast.error(flash.error);
         }
     }, [flash]);
 
@@ -99,12 +100,6 @@ export function TasksKanbanBoard() {
             preserveScroll: true,
             preserveState: true,
             only: ['flash'],
-            onSuccess: () => {
-                console.log('Task aggiornato con successo');
-            },
-            onError: (errors: Record<string, string>) => {
-                console.error('Errore aggiornamento task:', errors);
-            }
         });
         
     };
