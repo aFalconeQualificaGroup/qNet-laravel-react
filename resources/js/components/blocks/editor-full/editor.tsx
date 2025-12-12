@@ -3,7 +3,7 @@ import {
   LexicalComposer,
 } from "@lexical/react/LexicalComposer"
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin"
-import { EditorState, SerializedEditorState, $getRoot, $createParagraphNode } from "lexical"
+import { EditorState, SerializedEditorState, $getRoot, $createParagraphNode, $nodesOfType } from "lexical"
 import { useEffect } from "react"
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
 
@@ -12,6 +12,7 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 
 import { nodes } from "./nodes"
 import { Plugins } from "./plugins"
+import { $isMentionNode, MentionNode } from "./nodes/MentionNode"
 
 function ResetPlugin() {
   const [editor] = useLexicalComposerContext()
@@ -30,6 +31,43 @@ function ResetPlugin() {
   }, [editor])
 
   return null
+}
+
+function MentionTrackingPlugin({ 
+  onSelectMentionUser, 
+  selectedMentionUsers 
+}: { 
+  onSelectMentionUser?: (userId: number) => void;
+  selectedMentionUsers?: number[];
+}) {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    if (!onSelectMentionUser || !selectedMentionUsers) return;
+
+    return editor.registerUpdateListener(({ editorState }) => {
+      editorState.read(() => {
+        const currentMentionIds = new Set<number>();
+
+        // Raccogli tutti gli ID delle menzioni presenti nel testo
+        const mentionNodes = $nodesOfType(MentionNode);
+        mentionNodes.forEach((node) => {
+          currentMentionIds.add(node.getUserId());
+        });
+
+        // Trova gli utenti che sono stati rimossi
+        selectedMentionUsers.forEach((userId) => {
+          if (!currentMentionIds.has(userId)) {
+            // Questo utente era menzionato ma ora non c'è più nel testo
+            // Chiamiamo il callback per rimuoverlo
+            onSelectMentionUser(userId);
+          }
+        });
+      });
+    });
+  }, [editor, onSelectMentionUser, selectedMentionUsers]);
+
+  return null;
 }
 
 const editorConfig: InitialConfigType = {
@@ -86,6 +124,11 @@ export function Editor({
           />
 
           <ResetPlugin />
+
+          <MentionTrackingPlugin 
+            onSelectMentionUser={onSelectMentionUser}
+            selectedMentionUsers={selectedMentionUsers}
+          />
 
           <OnChangePlugin
             ignoreSelectionChange={true}

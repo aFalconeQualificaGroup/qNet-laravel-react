@@ -29,6 +29,8 @@ import {
 } from "@lexical/rich-text"
 import { $setBlocksType } from "@lexical/selection"
 import { $createCodeNode } from "@lexical/code"
+import { $createMentionNode } from "./nodes/MentionNode"
+import { $createTextNode } from "lexical"
 import { 
   Bold, 
   Italic, 
@@ -64,8 +66,8 @@ import { FontSizeToolbarPlugin } from "@/components/editor/plugins/toolbar/font-
 import { MentionsToolbarPlugin } from "@/components/editor/plugins/toolbar/mentions-toolbar-plugin"
 import { SpeechToTextPlugin } from "@/components/editor/plugins/actions/speech-to-text-plugin"
 import { ActionsPlugin } from "@/components/editor/plugins/actions/actions-plugin"
-import { MentionsListPlugin } from "@/components/editor/plugins/actions/mentions-list-plugin"
 import { UserMentionedDropdown } from "@/components/generatedComponents/task-generator/userMentioned-dropdown"
+import MentionsPlugin from "./plugins/MentionsPlugin"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -111,22 +113,6 @@ export function Plugins({
   const [isLink, setIsLink] = useState(false)
   const [blockType, setBlockType] = useState<keyof typeof blockTypeToBlockName>("paragraph")
   const [showMentionDropdown, setShowMentionDropdown] = useState(false)
-  const [mentionUsersCache, setMentionUsersCache] = useState<any[]>([])
-
-  // Aggiorna la cache degli utenti menzionati quando cambiano
-  useEffect(() => {
-    if (mentionUsers) {
-      setMentionUsersCache(prev => {
-        const newCache = [...prev]
-        mentionUsers.forEach(user => {
-          if (!newCache.find(u => u.id === user.id)) {
-            newCache.push(user)
-          }
-        })
-        return newCache
-      })
-    }
-  }, [mentionUsers])
 
   const onRef = (_floatingAnchorElem: HTMLDivElement) => {
     if (_floatingAnchorElem !== null) {
@@ -509,7 +495,6 @@ export function Plugins({
           </>
         )}
 
-
         {/* Mention Dropdown */}
         {showMentions && showMentionDropdown && mentionUsers && onSelectMentionUser && onCloseMentions && (
           <div className="absolute z-50 mt-1 top-0">
@@ -521,29 +506,42 @@ export function Plugins({
                 setShowMentionDropdown(false)
                 onCloseMentions?.()
               }}
-              onSelectUser={onSelectMentionUser}
+              onSelectUser={(userId) => {
+                // Inserisci la menzione nel testo invece di aggiungerla alla lista
+                const user = mentionUsers.find(u => u.id === userId);
+                if (user) {
+                  editor.update(() => {
+                    const selection = $getSelection();
+                    if ($isRangeSelection(selection)) {
+                      const mentionNode = $createMentionNode(
+                        `${user.name} ${user.last_name || ''}`.trim(),
+                        user.id
+                      );
+                      selection.insertNodes([mentionNode]);
+                      // Aggiungi uno spazio dopo
+                      const spaceNode = $createTextNode(' ');
+                      mentionNode.insertAfter(spaceNode);
+                      spaceNode.select();
+                    }
+                  });
+                }
+                // Chiama anche il callback originale per tracking
+                onSelectMentionUser?.(userId);
+              }}
               setFilter={onFilterMentionUsers}
             />
           </div>
         )}
+
+        {/* Mentions Plugin - per digitare @ */}
+        {showMentions && <MentionsPlugin mentionUsers={mentionUsers} />}
       </div>
 
        
       {/* Azioni */}
       <ActionsPlugin>
         <div className="clear-both flex items-center gap-2 border-t p-1">
-          
-          {/* left side action buttons */}
-          {showMentions && (
-            <MentionsListPlugin
-              mentionUsers={mentionUsersCache}
-              selectedMentionUsers={selectedMentionUsers}
-              onSelectMentionUser={onSelectMentionUser}
-            />
-          )}
-
           <div className="flex-shrink-0">
-            {/* right side action buttons */}
             <SpeechToTextPlugin />
           </div>
         </div>

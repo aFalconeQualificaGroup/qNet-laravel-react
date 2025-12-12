@@ -9,6 +9,7 @@ import {
   ParagraphNode,
   TextNode,
 } from "lexical"
+import { MentionNode } from "./nodes/MentionNode"
 
 export const nodes: ReadonlyArray<Klass<LexicalNode> | LexicalNodeReplacement> =
   [
@@ -22,4 +23,5 @@ export const nodes: ReadonlyArray<Klass<LexicalNode> | LexicalNodeReplacement> =
     ListItemNode,
     CodeNode,
     CodeHighlightNode,
+    MentionNode,
   ]
