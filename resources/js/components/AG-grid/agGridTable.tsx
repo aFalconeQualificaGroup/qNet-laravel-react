@@ -68,7 +68,7 @@ const AGGridTable = ({ entity, settings}: AGGridTableProps) => {
 
 
     return (
-        <div className='w-full h-[500px]'>
+        <div className='w-full h-full'>
             <AgGridReact
                 {...settings}
                 localeText={AG_GRID_LOCALE_IT}

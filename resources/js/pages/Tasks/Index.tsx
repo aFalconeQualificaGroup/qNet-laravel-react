@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TasksKanbanBoard } from '@/components/kanban-board/TasksKanbanBoard';
 import { TaskCalendar } from '@/components/calendar/TaskCalendar';
 import axios from "axios";
+import AdvancedFilters from '@/components/advanced-filter/AdvancedFilters';
+
 
 interface PaginationLink {
     url: string | null;
@@ -90,8 +92,16 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
                             <TabsTrigger value="calendar">Calendario</TabsTrigger>
                         </TabsList>
                     
-                        <TabsContent value="table">
-                            {settings && <AGGridTable entity="tasks" settings={settings} />}
+                        <TabsContent value="table" className="space-y-4">
+                            {settings && (
+                                <>
+                                    <div className="mb-4">
+                                        <AdvancedFilters/>
+                                    </div>
+                                    <AGGridTable entity="tasks" settings={settings} />
+                                </>
+                                
+                            )}
                         </TabsContent>
                         
                         <TabsContent value="kanban">

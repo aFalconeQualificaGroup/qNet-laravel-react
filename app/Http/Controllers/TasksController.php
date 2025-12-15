@@ -107,7 +107,7 @@ class TasksController extends Controller
     {
         try {
             $input = $request->all();
-
+           
             $priority = null;
             if ($input['form']['priority'] == 'low') {
                 $priority = 1;
@@ -292,9 +292,6 @@ class TasksController extends Controller
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id )
     {
         try {
