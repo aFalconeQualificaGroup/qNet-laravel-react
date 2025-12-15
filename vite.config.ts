@@ -17,9 +17,12 @@ export default defineConfig({
             },
         }),
         tailwindcss(),
-        wayfinder({
-            formVariants: true,
-        }),
+        // Wayfinder disabilitato in build per evitare problemi con PHP sul server
+        ...(process.env.NODE_ENV !== 'production' ? [
+            wayfinder({
+                formVariants: true,
+            })
+        ] : []),
     ],
     esbuild: {
         jsx: 'automatic',
