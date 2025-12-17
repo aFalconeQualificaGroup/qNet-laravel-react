@@ -20,6 +20,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('tasks/rows', [App\Http\Controllers\TasksController::class, 'rows']);
 
     Route::resource("tasks", App\Http\Controllers\TasksController::class);
+    Route::post('tasks/save-user-tasks-filter', [App\Http\Controllers\TasksController::class, 'saveUserTasksFilter'])->name('tasks.saveUserTasksFilter');
+    Route::post('tasks/update-favorite-filter-status/{filterId}', [App\Http\Controllers\TasksController::class, 'updateFavoriteFilterStatus'])->name('tasks.updateFavoriteFilterStatus');
 
     Route::get('aggrid-settings', [App\Http\Controllers\AgGridController::class, 'settings']);
     Route::get('aggrid-update-columns-sort', [App\Http\Controllers\AgGridController::class, 'updateColumnsSort']);

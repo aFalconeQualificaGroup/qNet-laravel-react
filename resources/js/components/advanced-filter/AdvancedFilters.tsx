@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
     Filter, 
     Search, 
@@ -24,15 +24,18 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { HierarchicalFilter } from './HierarchicalFilter';
+import { usePage, router } from '@inertiajs/react';
+import { MultiUserDropdown } from '../generatedComponents/task-generator/multi-user-dropdown';
+import { toast } from 'sonner';
 
 // --- Helper Functions ---
 const createInitialFilters = (): FiltersMap => ({
     statoAttivita: { conditions: [{ id: '1', operator: 'equals', values: [], logic: null }] },
-    assegnatario: { conditions: [{ id: '2', operator: 'in', values: [], logic: null }] },
+    assegnatario: { conditions: [{ id: '2', operator: 'in', values: [], logic: null, users: [] }] },
     priorita: { conditions: [{ id: '3', operator: 'equals', values: [], logic: null }] },
     tipoAttivita: { conditions: [{ id: '4', operator: 'in', values: [], logic: null }] },
     statoCompletamento: { conditions: [{ id: '5', operator: 'equals', values: [], logic: null }] },
-    osservatori: { conditions: [{ id: '6', operator: 'in', values: [], logic: null }] },
+    osservatori: { conditions: [{ id: '6', operator: 'in', values: [], logic: null, users: [] }] },
     dataScadenza: { conditions: [{ id: '7', operator: 'between', values: ['', ''], logic: null }] },
     dataInizio: { conditions: [{ id: '8', operator: 'between', values: ['', ''], logic: null }] },
 });
@@ -52,6 +55,9 @@ const getFilterPreview = (filterState: FilterState): string | null => {
     filterState.conditions.forEach((c: Condition) => {
         if (['is_empty', 'is_not_empty'].includes(c.operator)) {
             parts.push(c.operator === 'is_empty' ? 'Vuoto' : 'Non vuoto');
+        } else if (c.users && c.users.length > 0) {
+            // Per assegnatari e osservatori mostra i nomi degli utenti
+            parts.push(c.users.map(u => u.name).join(', '));
         } else if (c.values.length > 0 && c.values[0] !== '') {
             if (c.operator === 'between' && c.values.length === 2) {
                 parts.push(`${c.values[0]} → ${c.values[1]}`);
@@ -90,6 +96,20 @@ const LogicSwitch = ({ value, onChange }: { value: 'AND' | 'OR', onChange: (val:
 );
 
 export default function AdvancedFilters() {
+    // --- Inertia Props ---
+    const { props } = usePage<{ 
+        assegnatariForAdvancedFilter?: { id: number; name: string }[];
+        osservatoriForAdvancedFilter?: { id: number; name: string }[];
+        userSavedFilters?: SavedFilter[];
+        flash?: { 
+            success?: string; 
+            error?: string; 
+            warning?: string; 
+        };
+    }>();
+    const assegnatari = props.assegnatariForAdvancedFilter || [];
+    const osservatori = props.osservatoriForAdvancedFilter || [];
+
     // --- State ---
     const [activeTab, setActiveTab] = useState<'filters' | 'saved' | 'favorites'>('saved');
     const [searchText, setSearchText] = useState('');
@@ -97,7 +117,59 @@ export default function AdvancedFilters() {
     
     const [filters, setFilters] = useState<FiltersMap>(createInitialFilters());
     const [collegatoA, setCollegatoA] = useState<CollegatoAState>(initialCollegatoA);
-    const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({ statoAttivita: true });
+    const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+    
+    /* Gestione degli errori */
+    useEffect(() => {
+        if (props.flash?.error) {
+            toast.error(props.flash.error);
+        }
+        if (props.flash?.success) {
+            toast.success(props.flash.success);
+        }
+        if (props.flash?.warning) {
+            toast.warning(props.flash.warning);
+        }
+    }, [props.flash]);
+
+    /* Recupero filtri utente */
+    useEffect(() => {
+        router.reload({
+            only: ['userSavedFilters'],
+        });    
+    }, []);
+
+    /* Salvataggio filtri nello stato locale */
+    useEffect(() => {
+         if (props.userSavedFilters) {
+            setSavedFilters(props.userSavedFilters);
+            
+            // Popola i preferiti con i filtri che hanno isFavorite: true
+            const favoriteIds = props.userSavedFilters
+                .filter(filter => filter.isFavorite === true)
+                .map(filter => filter.id);
+            setFavorites(favoriteIds);
+        }
+    }, [props.userSavedFilters]);
+
+    // --- Funzioni per caricare utenti ---
+    const loadAssegnatari = (search: string = '') => {
+        if (search.length >= 3 || search.length === 0) {
+            router.reload({
+                only: ['assegnatariForAdvancedFilter'],
+                data: { search },
+            });
+        }
+    };
+    
+    const loadOsservatori = (search: string = '') => {
+        if (search.length >= 3 || search.length === 0) {
+            router.reload({
+                only: ['osservatoriForAdvancedFilter'],
+                data: { search },
+            });
+        }
+    };
     
     // Saved & Favorites
     const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([]);
@@ -108,7 +180,11 @@ export default function AdvancedFilters() {
     const [newFilterName, setNewFilterName] = useState('');
     const [newFilterDescription, setNewFilterDescription] = useState('');
     const [saveAsFavorite, setSaveAsFavorite] = useState(false);
+    const [editingFilterId, setEditingFilterId] = useState<number | null>(null);
 
+
+    
+       
     // --- Actions ---
 
     const toggleSection = (key: string) => {
@@ -173,40 +249,74 @@ export default function AdvancedFilters() {
 
     const handleCreateNew = () => {
         resetAll();
+        setEditingFilterId(null);
         setActiveTab('filters');
     };
 
     const saveFilter = () => {
         if (!newFilterName) return;
-        const newId = Date.now();
-        const newFilter: SavedFilter = {
-            id: newId,
+        
+        const filterData: {
+            filters: string;
+            collegatoA: string;
+            searchText: string;
+            name: string;
+            description: string;
+            is_favorite: boolean;
+            id?: number;
+        } = {
+            filters: JSON.stringify(filters),
+            collegatoA: JSON.stringify(collegatoA),
+            searchText: searchText,
             name: newFilterName,
             description: newFilterDescription,
-            filters: JSON.parse(JSON.stringify(filters)),
-            collegatoA: { ...collegatoA },
-            searchText,
-            createdAt: new Date().toISOString()
+            is_favorite: saveAsFavorite,
         };
-        setSavedFilters(prev => [...prev, newFilter]);
-        if (saveAsFavorite) {
-            setFavorites(prev => [...prev, newId]);
+
+        // Se stiamo modificando un filtro esistente, aggiungi l'ID
+        if (editingFilterId !== null) {
+            filterData.id = editingFilterId;
         }
+
+        router.post('/tasks/save-user-tasks-filter', filterData, {
+            onSuccess: () => {
+                // Ricarica i filtri salvati
+                router.reload({ only: ['userSavedFilters'] });
+            }
+        });
+
         setShowSaveModal(false);
         setNewFilterName('');
         setNewFilterDescription('');
         setSaveAsFavorite(false);
+        setEditingFilterId(null);
     };
 
     const loadFilter = (filter: SavedFilter) => {
-        setFilters(filter.filters);
-        setCollegatoA(filter.collegatoA);
+        // Parse i dati se arrivano come stringhe JSON dal backend
+        const parsedFilters = typeof filter.filters === 'string' 
+            ? JSON.parse(filter.filters) 
+            : filter.filters;
+        const parsedCollegatoA = typeof filter.collegatoA === 'string' 
+            ? JSON.parse(filter.collegatoA) 
+            : filter.collegatoA;
+            
+        setFilters(parsedFilters);
+        setCollegatoA(parsedCollegatoA);
         setSearchText(filter.searchText);
+        
+        // Salva l'ID e i dati del filtro per la modalità modifica
+        setEditingFilterId(filter.id);
+        setNewFilterName(filter.name);
+        setNewFilterDescription(filter.description);
+        setSaveAsFavorite(filter.isFavorite || false);
+        
         setActiveTab('filters');
     };
 
     const toggleFavorite = (id: number) => {
         setFavorites(prev => prev.includes(id) ? prev.filter(fid => fid !== id) : [...prev, id]);
+        router.post(`/tasks/update-favorite-filter-status/${id}`, {});
     };
 
     // --- Render Logic ---
@@ -215,10 +325,13 @@ export default function AdvancedFilters() {
         let count = 0;
         Object.values(filters).forEach((f) => {
             const filterState = f as FilterState;
-            filterState.conditions.forEach((c: Condition) => {
-                if (['is_empty', 'is_not_empty'].includes(c.operator)) count++;
-                else if (c.values.length > 0 && c.values[0] !== '') count++;
-            });
+            if (filterState && filterState.conditions) {
+                filterState.conditions.forEach((c: Condition) => {
+                    if (['is_empty', 'is_not_empty'].includes(c.operator)) count++;
+                    else if (c.users && c.users.length > 0) count++;
+                    else if (c.values.length > 0 && c.values[0] !== '') count++;
+                });
+            }
         });
         if (collegatoA.tipo !== 'Nessuno') count++;
         if (searchText) count++;
@@ -278,7 +391,19 @@ export default function AdvancedFilters() {
                                     onChange={(e) => updateCondition(filterKey, index, { values: [e.target.value] })} 
                                 />
                             ) : (
-                                isMulti ? (
+                                (filterKey === 'assegnatario' || filterKey === 'osservatori') ? (
+                                    <MultiUserDropdown
+                                        users={filterKey === 'assegnatario' ? assegnatari : osservatori}
+                                        value={(condition as any).users || []}
+                                        onChange={(users) => updateCondition(filterKey, index, { 
+                                            users,
+                                            values: users.map(u => String(u.id))
+                                        })}
+                                        onFilter={filterKey === 'assegnatario' ? loadAssegnatari : loadOsservatori}
+                                        title={filterKey === 'assegnatario' ? 'Seleziona assegnatari' : 'Seleziona osservatori'}
+                                        placeholder="Cerca utente..."
+                                    />
+                                ) : isMulti ? (
                                     <div className="border border-input rounded-md max-h-40 overflow-y-auto bg-background p-2 space-y-1">
                                         {sourceData.map(opt => (
                                             <label key={opt} className="flex items-center gap-2 p-1.5 hover:bg-accent rounded cursor-pointer">
@@ -414,7 +539,7 @@ export default function AdvancedFilters() {
                                     </div>
                                     <Button variant="default" size="sm" onClick={() => setShowSaveModal(true)}>
                                         <Save size={14} className="mr-2" />
-                                        Salva
+                                        {editingFilterId !== null ? 'Aggiorna' : 'Salva'}
                                     </Button>
                                 </div>
                             )}
@@ -599,7 +724,7 @@ export default function AdvancedFilters() {
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-background rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in fade-in slide-in-from-bottom-4">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold">Salva Filtro</h2>
+                            <h2 className="text-xl font-bold">{editingFilterId !== null ? 'Aggiorna Filtro' : 'Salva Filtro'}</h2>
                             <Button variant="ghost" size="icon" onClick={() => setShowSaveModal(false)}>
                                 <X size={24} />
                             </Button>
@@ -650,7 +775,9 @@ export default function AdvancedFilters() {
                         </div>
                         <div className="flex justify-end gap-3 mt-8">
                             <Button variant="ghost" onClick={() => setShowSaveModal(false)}>Annulla</Button>
-                            <Button variant="default" onClick={saveFilter} disabled={!newFilterName}>Salva Filtro</Button>
+                            <Button variant="default" onClick={saveFilter} disabled={!newFilterName}>
+                                {editingFilterId !== null ? 'Aggiorna Filtro' : 'Salva Filtro'}
+                            </Button>
                         </div>
                     </div>
                 </div>

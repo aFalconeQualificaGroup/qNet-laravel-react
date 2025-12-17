@@ -16,6 +16,7 @@ type ClientDropdownProps = {
     onChange: (v: string) => void;
     onFilter?: (search: string) => void;
     title?: string;
+    icon?: React.ComponentType<{ className?: string }>;
 };
 
 export const ClientDropdown: React.FC<ClientDropdownProps> = ({ 
@@ -23,7 +24,8 @@ export const ClientDropdown: React.FC<ClientDropdownProps> = ({
     value, 
     onChange, 
     onFilter,
-    title = "Seleziona cliente" 
+    title = "Seleziona cliente",
+    icon: Icon = Building2
 }) => {
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState("");
@@ -60,7 +62,7 @@ export const ClientDropdown: React.FC<ClientDropdownProps> = ({
                     size="sm"
                     className="rounded-button-sm border-2 hover:bg-accent w-full justify-start"
                 >
-                    <Building2 className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <Icon className="h-4 w-4 mr-2 flex-shrink-0" />
                     <span className="flex-1 truncate text-left">
                         {selectedClient ? selectedClient.name : title}
                     </span>

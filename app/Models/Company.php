@@ -131,4 +131,8 @@ class Company extends Model implements Searchable
         return $this->hasMany(Opportunity::class, 'customer_id', 'id');
     }
 
+    public function orders() {
+        return $this->hasMany(Order::class, 'customer_id', 'id');
+    }
+
 }

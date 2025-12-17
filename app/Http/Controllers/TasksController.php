@@ -55,6 +55,13 @@ class TasksController extends Controller
             'tasksByDeadline' => Inertia::lazy(fn () => $this->getTasksByDeadlineData($year)),
             'tasksForCalendarView' => Inertia::lazy(fn () => $this->getTasksForCalendarView($date)),
             'tasksAgGridData' => Inertia::lazy( fn () => $this->getTasksAgGridConfig($request)),
+            'userForAdvancedFilter' => Inertia::lazy( fn () => $this->getUserForAdvancedFilter($request)),
+            'clientsForAdvancedFilter' => Inertia::lazy( fn () => $this->getClientsForAdvancedFilter($request)),
+            'ordersForAdvancedFilter' => Inertia::lazy( fn () => $this->getCommesseForClient($request)),
+            'opportunitysForAdvancedFilter' => Inertia::lazy( fn () => $this->getOpportunitysForClient($request)),
+            'assegnatariForAdvancedFilter' => Inertia::lazy( fn () => $this->getUserForAdvancedFilter($request)),
+            'osservatoriForAdvancedFilter' => Inertia::lazy( fn () => $this->getUserForAdvancedFilter($request)),
+            'userSavedFilters' => Inertia::lazy( fn () => $this->getUserSavedFilters($request)),
         ]);
     }
 
@@ -359,6 +366,51 @@ class TasksController extends Controller
         ];
     }
 
+    public function saveUserTasksFilter(Request $request)
+    {   
+
+        if($request->has('id')){
+           $filterId = $request->input('id');
+           if($filterId){
+                $filterNewValue = [
+                    'filters' => $request->input('filters'),
+                    'collegatoA' => $request->input('collegatoA'),
+                    'searchText' => $request->input('searchText'),
+                    'name' => $request->input('name'),
+                    'description' => $request->input('description'),
+                    'is_favorite' => $request->input('is_favorite', false),
+                ];
+                // qui recuperi il filtro esistente dal database e lo aggiorni con i dati di $filterNewValue
+
+                return back()->with('success', 'Filtro aggiornato con successo!');
+           }    
+        }
+
+        $newFilter = [
+            'filters' => $request->input('filters'),
+            'collegatoA' => $request->input('collegatoA'),
+            'searchText' => $request->input('searchText'),
+            'name' => $request->input('name'),
+            'description' => $request->input('description'),
+            'is_favorite' => $request->input('is_favorite', false),
+        ];
+
+        // qui salvi $newFilter nel database associandolo all'utente corrente
+
+        /* Esempio di risposta dopo aver salvato il filtro dell' utente */
+        return back()->with('success', 'Filtro creato con successo!');
+       
+        //return back()->with('error', 'Errore durante la creazione del filtro.');
+        
+    }
+
+    public function updateFavoriteFilterStatus(Request $request, $filterId)
+    {
+       //dd($request->all(), $filterId);
+       return back()->with('success', 'Stato filtro preferito aggiornato con successo!');
+
+       //return back()->with('error', 'Errore durante l\'aggiornamento dello stato del filtro preferito.');
+    }
     /**
      * Recupera i dati dei task raggruppati per scadenza (metodo privato per lazy loading)
      */
@@ -499,4 +551,120 @@ class TasksController extends Controller
             'paginationPageSize' => 15,
         ];
     }
-}
+
+    private function getUserForAdvancedFilter(Request $request)
+    {
+        $serchParams = $request->input('search');
+        $query = User::query();
+
+        if ($serchParams) {
+            $query->where('name', 'like', "%{$serchParams}%")
+                  ->orWhere('email', 'like', "%{$serchParams}%")
+                  ->orWhere('last_name', 'like', "%{$serchParams}%");
+        }
+        
+        return $query->select('id', 'name')
+            ->limit(50)
+            ->get();
+    }
+
+    private function getClientsForAdvancedFilter(Request $request)
+    {
+        $searchParams = $request->input('search');
+        
+        $query = Company::query();
+        
+        if ($searchParams) {
+            $query->where('name', 'like', "%{$searchParams}%");
+        }
+        
+        return $query->select('id', 'name')
+            ->limit(50)
+            ->get();
+    }
+
+    private function getCommesseForClient(Request $request)
+    {
+        $searchParams = $request->input('search');
+        $clientId = $request->input('client_id');
+
+        $client = Company::find($clientId);
+
+        if (!$client) {
+            return [];
+        }
+
+        $query = $client->orders()->select('id', 'title');
+
+        if ($searchParams && $searchParams != '') {
+            $query->where('title', 'like', "%{$searchParams}%");
+        }
+
+        return $query->paginate(10);
+    }
+
+    private function getOpportunitysForClient(Request $request)
+    {
+        $searchParams = $request->input('search');
+        $clientId = $request->input('client_id');
+
+        $client = Company::find($clientId);
+
+        if (!$client) {
+            return [];
+        }
+
+        $query = $client->opportunity()->select('id', 'title');
+
+        if ($searchParams && $searchParams != '') {
+            $query->where('title', 'like', "%{$searchParams}%");
+        }
+
+        return $query->paginate(10);
+    }
+
+    private function getUserSavedFilters(Request $request)
+    {
+       $savedFilters = [
+           [
+               'id' => 1,
+               'name' => 'Task Urgenti Aperti',
+               'description' => 'Tutti i task con priorità urgente e stato aperto',
+               'filters' => json_encode([
+                   'statoAttivita' => ['conditions' => [['id' => '1', 'operator' => 'equals', 'values' => ['Aperto'], 'logic' => null]]],
+                   'priorita' => ['conditions' => [['id' => '3', 'operator' => 'equals', 'values' => ['Urgente'], 'logic' => null]]],
+               ]),
+               'collegatoA' => json_encode(['tipo' => 'Nessuno', 'azienda' => '', 'contatto' => '', 'sottoTipo' => 'Nessuno', 'commessa' => '', 'opportunita' => '']),
+               'searchText' => '',
+               'createdAt' => '2025-12-01T10:00:00.000Z',
+               'isFavorite' => true,
+           ],
+           [
+               'id' => 2,
+               'name' => 'Task Scadenza Oggi',
+               'description' => 'Task con scadenza odierna',
+               'filters' => json_encode([
+                   'dataScadenza' => ['conditions' => [['id' => '7', 'operator' => 'equals', 'values' => [date('Y-m-d')], 'logic' => null]]],
+               ]),
+               'collegatoA' => json_encode(['tipo' => 'Nessuno', 'azienda' => '', 'contatto' => '', 'sottoTipo' => 'Nessuno', 'commessa' => '', 'opportunita' => '']),
+               'searchText' => '',
+               'createdAt' => '2025-12-10T14:30:00.000Z',
+               'isFavorite' => false,
+           ],
+           [
+               'id' => 3,
+               'name' => 'Commesse Cliente XYZ',
+               'description' => 'Task collegati alle commesse del cliente XYZ',
+               'filters' => json_encode([
+                   'assegnatario' => ['conditions' => [['id' => '2', 'operator' => 'in', 'values' => ['1', '2'], 'logic' => null, 'users' => [['id' => 1, 'name' => 'Mario Rossi'], ['id' => 2, 'name' => 'Luigi Verdi']]]]],
+               ]),
+               'collegatoA' => json_encode(['tipo' => 'Azienda', 'azienda' => '5', 'contatto' => '', 'sottoTipo' => 'Commessa', 'commessa' => '12', 'opportunita' => '']),
+               'searchText' => '',
+               'createdAt' => '2025-12-15T09:15:00.000Z',
+               'isFavorite' => true,
+           ],
+       ];
+
+        return $savedFilters;
+    }
+}   

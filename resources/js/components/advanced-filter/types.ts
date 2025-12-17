@@ -6,6 +6,7 @@ export interface Condition {
     operator: string;
     values: string[];
     logic: LogicType | null;
+    users?: { id: number; name: string }[];
 }
 
 export interface FilterState {
@@ -29,10 +30,11 @@ export interface SavedFilter {
     id: number;
     name: string;
     description: string;
-    filters: FiltersMap;
-    collegatoA: CollegatoAState;
+    filters: FiltersMap | string; // Può essere oggetto o stringa JSON dal backend
+    collegatoA: CollegatoAState | string; // Può essere oggetto o stringa JSON dal backend
     searchText: string;
     createdAt: string;
+    isFavorite?: boolean;
 }
 
 // --- Mock Data ---
