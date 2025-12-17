@@ -144,7 +144,7 @@ class TasksHelper
                 'editable' => false,
                 'filterable' => true,
                 'sortable' => true,
-                'type' => 'text',
+                'type' => 'date',
             ],
             'timetaskend' => [
                 'text' => 'timetaskend',

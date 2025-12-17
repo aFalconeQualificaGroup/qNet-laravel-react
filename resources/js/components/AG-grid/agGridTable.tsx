@@ -101,7 +101,7 @@ const AGGridTable = ({ entity, settings}: AGGridTableProps) => {
             return <span dangerouslySetInnerHTML={{ __html: params.value }} />;
         };
         col.tooltipValueGetter = (params) => {
-            if (entity == 'tasks' && (params.column.colId == 'status' || params.column.colId == 'typetask' || params.column.colId == 'assigned_by')) {
+            if (entity == 'tasks' && (params.column.colId == 'status' || params.column.colId == 'typetask' || params.column.colId == 'assigned_by' || params.column.colId == 'assigned_to')) {
                 return;
             }
             return params.value;

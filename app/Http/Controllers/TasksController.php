@@ -400,6 +400,10 @@ class TasksController extends Controller
                     }
                 }
                 elseif ($filter['filterType'] == 'set') {
+                    if ($col == 'assigned_to') {
+                        $col = 'task_assigneds.user_id';
+                    }
+
                     $query->whereIn($col, $filter['values']);
                 }
             }
@@ -417,6 +421,7 @@ class TasksController extends Controller
             $tasks[$id]->status = $this->formatTaskStatus($task->status, $task->contestata);
             $tasks[$id]->typetask = $this->formatTypeTask($task->typetask);
             $tasks[$id]->assigned_by = $this->formatAssignedBy($task->assigned_by);
+            $tasks[$id]->assigned_to = $this->formatAssignedTo($task);
         }
 
         return [
@@ -457,7 +462,20 @@ class TasksController extends Controller
     private function formatAssignedBy($assigned_by)
     {
         if ($assigned_by) {
-            return '<ul class="list-unstyled users-list m-0 d-flex align-items-center"><li class="avatar pull-up my-0" title="' . $this->userFull($assigned_by) . '"><span class="badge badge-circle white">' . $this->userInitial($assigned_by) . '</span></li></ul>';
+            return '<ul class="users-list flex items-center"><li class="avatar pull-up my-0" title="' . $this->userFull($assigned_by) . '"><span class="badge badge-circle white">' . $this->userInitial($assigned_by) . '</span></li></ul>';
+        }
+    }
+
+    private function formatAssignedTo($task)
+    {
+        if (!$task->operatori->isEmpty()) {
+            $output = '<ul class="users-list flex items-center">';
+            foreach ($task->operatori as $item) {
+                $output .= '<li class="avatar pull-up my-0" title="' . $item->UserTask . '"> <span class="badge badge-circle white badge-circle-sm">' . $this->userInitial($item->user_id) . '</span></li>';
+            }
+            $output .= '</ul>';
+
+            return $output;
         }
     }
 
