@@ -779,9 +779,6 @@ class TasksController extends Controller
         
        //return back()->with('error', 'Errore durante l\'aggiornamento dello stato del filtro preferito.');
     }
-<<<<<<< HEAD
-}
-=======
 
     public function saveUserTasksFilter(Request $request)
     {   
@@ -822,4 +819,3 @@ class TasksController extends Controller
     }
 }   
 
->>>>>>> dev
