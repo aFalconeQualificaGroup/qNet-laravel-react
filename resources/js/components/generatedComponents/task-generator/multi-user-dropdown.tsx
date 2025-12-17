@@ -66,9 +66,9 @@ export const MultiUserDropdown: React.FC<MultiUserDropdownProps> = ({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="rounded-button-sm border-2 hover:bg-accent w-full justify-start min-h-[2.5rem] h-auto"
+                    className="rounded-button-sm border-2 hover:bg-accent w-full justify-start min-h-10 h-auto"
                 >
-                    <User className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <User className="h-4 w-4 mr-2 shrink-0" />
                     <div className="flex-1 flex flex-wrap gap-1 items-center text-left">
                         {value.length === 0 ? (
                             <span className="text-muted-foreground">{title}</span>
@@ -89,7 +89,7 @@ export const MultiUserDropdown: React.FC<MultiUserDropdownProps> = ({
                     </div>
                     {value.length > 0 && (
                         <X
-                            className="h-4 w-4 ml-2 flex-shrink-0 hover:text-destructive"
+                            className="h-4 w-4 ml-2 shrink-0 hover:text-destructive"
                             onClick={handleClearAll}
                         />
                     )}

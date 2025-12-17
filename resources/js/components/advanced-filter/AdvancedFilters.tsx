@@ -171,6 +171,12 @@ export default function AdvancedFilters() {
         }
     };
     
+    const setActiveFilter = (id: number | null) => {
+        if (id !== null) {
+            alert(`Filtro attivo impostato su ID: ${id}`); // Sostituisci con la logica reale
+        }
+    };
+
     // Saved & Favorites
     const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([]);
     const [favorites, setFavorites] = useState<number[]>([]);
@@ -708,7 +714,7 @@ export default function AdvancedFilters() {
                     <Button variant="secondary">Annulla</Button>
                     <Button
                         variant="default"
-                        onClick={() => alert('Filtri applicati!\n' + JSON.stringify(filters, null, 2))}
+                        onClick={() => setActiveFilter(editingFilterId)}
                         disabled={getActiveCount === 0}
                     >
                         <CheckCircle2 size={18} className="mr-2" />
