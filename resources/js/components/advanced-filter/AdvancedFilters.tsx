@@ -114,7 +114,7 @@ export default function AdvancedFilters() {
     const [activeTab, setActiveTab] = useState<'filters' | 'saved' | 'favorites'>('saved');
     const [searchText, setSearchText] = useState('');
     const [isCollapsed, setIsCollapsed] = useState(false);
-    
+
     const [filters, setFilters] = useState<FiltersMap>(createInitialFilters());
     const [collegatoA, setCollegatoA] = useState<CollegatoAState>(initialCollegatoA);
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
@@ -175,7 +175,7 @@ export default function AdvancedFilters() {
     const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([]);
     const [favorites, setFavorites] = useState<number[]>([]);
     const [showSaveModal, setShowSaveModal] = useState(false);
-    
+
     // Save Modal State
     const [newFilterName, setNewFilterName] = useState('');
     const [newFilterDescription, setNewFilterDescription] = useState('');
@@ -195,7 +195,7 @@ export default function AdvancedFilters() {
         setFilters((prev: FiltersMap) => {
             const newConditions = [...prev[filterKey].conditions];
             newConditions[conditionIndex] = { ...newConditions[conditionIndex], ...updates };
-            
+
             // Auto-clear values if operator changes to empty/not empty
             if (updates.operator && ['is_empty', 'is_not_empty'].includes(updates.operator)) {
                 newConditions[conditionIndex].values = [];
@@ -235,8 +235,8 @@ export default function AdvancedFilters() {
 
     const toggleMultiSelect = (filterKey: string, conditionIndex: number, value: string) => {
         const currentValues = filters[filterKey].conditions[conditionIndex].values;
-        const newValues = currentValues.includes(value) 
-            ? currentValues.filter((v: string) => v !== value) 
+        const newValues = currentValues.includes(value)
+            ? currentValues.filter((v: string) => v !== value)
             : [...currentValues, value];
         updateCondition(filterKey, conditionIndex, { values: newValues });
     };
@@ -343,7 +343,7 @@ export default function AdvancedFilters() {
         const isDate = filterKey.includes('data');
         const isMulti = ['assegnatario', 'osservatori', 'tipoAttivita'].includes(filterKey);
         const options = isDate ? OPERATORS.date : (isMulti ? OPERATORS.multiselect : OPERATORS.select);
-        
+
         let sourceData: string[] = [];
         if (filterKey === 'assegnatario' || filterKey === 'osservatori') sourceData = MOCK_DATA.utenti;
         else if (filterKey === 'tipoAttivita') sourceData = MOCK_DATA.tipiAttivita;
@@ -368,27 +368,27 @@ export default function AdvancedFilters() {
                             </SelectContent>
                         </Select>
                     </div>
-                    
+
                     {needsValues && (
                         <div className="flex-1">
                             {isDate && condition.operator === 'between' ? (
                                 <div className="flex gap-2">
-                                    <Input 
-                                        type="date" 
-                                        value={condition.values[0]} 
-                                        onChange={(e) => updateCondition(filterKey, index, { values: [e.target.value, condition.values[1]] })} 
+                                    <Input
+                                        type="date"
+                                        value={condition.values[0]}
+                                        onChange={(e) => updateCondition(filterKey, index, { values: [e.target.value, condition.values[1]] })}
                                     />
-                                    <Input 
-                                        type="date" 
-                                        value={condition.values[1]} 
-                                        onChange={(e) => updateCondition(filterKey, index, { values: [condition.values[0], e.target.value] })} 
+                                    <Input
+                                        type="date"
+                                        value={condition.values[1]}
+                                        onChange={(e) => updateCondition(filterKey, index, { values: [condition.values[0], e.target.value] })}
                                     />
                                 </div>
                             ) : isDate ? (
-                                <Input 
-                                    type="date" 
-                                    value={condition.values[0]} 
-                                    onChange={(e) => updateCondition(filterKey, index, { values: [e.target.value] })} 
+                                <Input
+                                    type="date"
+                                    value={condition.values[0]}
+                                    onChange={(e) => updateCondition(filterKey, index, { values: [e.target.value] })}
                                 />
                             ) : (
                                 (filterKey === 'assegnatario' || filterKey === 'osservatori') ? (
@@ -424,12 +424,12 @@ export default function AdvancedFilters() {
                                                 <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${condition.values[0] === opt ? 'border-primary' : 'border-input group-hover:border-primary/50'}`}>
                                                     {condition.values[0] === opt && <div className="w-2 h-2 rounded-full bg-primary" />}
                                                 </div>
-                                                <input 
-                                                    type="radio" 
+                                                <input
+                                                    type="radio"
                                                     name={`${filterKey}-${index}`}
-                                                    className="hidden" 
-                                                    checked={condition.values[0] === opt} 
-                                                    onChange={() => updateCondition(filterKey, index, { values: [opt] })} 
+                                                    className="hidden"
+                                                    checked={condition.values[0] === opt}
+                                                    onChange={() => updateCondition(filterKey, index, { values: [opt] })}
                                                 />
                                                 <span className={`text-sm ${condition.values[0] === opt ? 'font-medium' : 'text-muted-foreground'}`}>{opt}</span>
                                             </label>
@@ -446,7 +446,7 @@ export default function AdvancedFilters() {
 
     return (
         <div className="w-full bg-background rounded-lg shadow-lg flex flex-col overflow-hidden border">
-            
+
             {/* --- HEADER --- */}
             <div className="p-4 border-b bg-background flex flex-col gap-4 z-10">
                 <div className="flex items-center gap-3">
@@ -516,9 +516,9 @@ export default function AdvancedFilters() {
                                         {getHierarchicalPreview(collegatoA) && (
                                             <Badge variant="secondary" className="gap-1">
                                                 {getHierarchicalPreview(collegatoA)}
-                                                <X 
-                                                    className="w-3 h-3 cursor-pointer hover:text-destructive" 
-                                                    onClick={() => setCollegatoA(initialCollegatoA)} 
+                                                <X
+                                                    className="w-3 h-3 cursor-pointer hover:text-destructive"
+                                                    onClick={() => setCollegatoA(initialCollegatoA)}
                                                 />
                                             </Badge>
                                         )}
@@ -529,9 +529,9 @@ export default function AdvancedFilters() {
                                             return (
                                                 <Badge key={key} variant="secondary" className="gap-1">
                                                     <strong>{label}:</strong> {preview}
-                                                    <X 
-                                                        className="w-3 h-3 cursor-pointer hover:text-destructive" 
-                                                        onClick={() => setFilters((prev: FiltersMap) => ({ ...prev, [key]: { conditions: [{ id: Date.now().toString(), operator: 'equals', values: [], logic: null }] } }))} 
+                                                    <X
+                                                        className="w-3 h-3 cursor-pointer hover:text-destructive"
+                                                        onClick={() => setFilters((prev: FiltersMap) => ({ ...prev, [key]: { conditions: [{ id: Date.now().toString(), operator: 'equals', values: [], logic: null }] } }))}
                                                     />
                                                 </Badge>
                                             );
@@ -673,7 +673,7 @@ export default function AdvancedFilters() {
                             </div>
                         </div>
                     )}
-                    
+
                     {activeTab === 'favorites' && (
                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
                             {savedFilters.filter(f => favorites.includes(f.id)).length === 0 ? (
@@ -706,8 +706,8 @@ export default function AdvancedFilters() {
                 <div className="flex items-center gap-3">
                     <span className="text-sm text-muted-foreground mr-2">{getActiveCount} criteri selezionati</span>
                     <Button variant="secondary">Annulla</Button>
-                    <Button 
-                        variant="default" 
+                    <Button
+                        variant="default"
                         onClick={() => alert('Filtri applicati!\n' + JSON.stringify(filters, null, 2))}
                         disabled={getActiveCount === 0}
                     >
@@ -732,13 +732,13 @@ export default function AdvancedFilters() {
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1.5">Nome Filtro</label>
-                                <Input 
-                                    value={newFilterName} 
-                                    onChange={(e) => setNewFilterName(e.target.value)} 
-                                    placeholder="Es. Task urgenti Mario" 
+                                <Input
+                                    value={newFilterName}
+                                    onChange={(e) => setNewFilterName(e.target.value)}
+                                    placeholder="Es. Task urgenti Mario"
                                 />
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium mb-1.5">Descrizione (opzionale)</label>
                                 <textarea
@@ -750,9 +750,9 @@ export default function AdvancedFilters() {
                             </div>
 
                             <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                                <input 
-                                    type="checkbox" 
-                                    checked={saveAsFavorite} 
+                                <input
+                                    type="checkbox"
+                                    checked={saveAsFavorite}
                                     onChange={() => setSaveAsFavorite(!saveAsFavorite)}
                                     className="rounded border-input"
                                 />

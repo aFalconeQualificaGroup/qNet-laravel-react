@@ -33,10 +33,10 @@ function ResetPlugin() {
   return null
 }
 
-function MentionTrackingPlugin({ 
-  onSelectMentionUser, 
-  selectedMentionUsers 
-}: { 
+function MentionTrackingPlugin({
+  onSelectMentionUser,
+  selectedMentionUsers
+}: {
   onSelectMentionUser?: (userId: number) => void;
   selectedMentionUsers?: number[];
 }) {
@@ -125,7 +125,7 @@ export function Editor({
 
           <ResetPlugin />
 
-          <MentionTrackingPlugin 
+          <MentionTrackingPlugin
             onSelectMentionUser={onSelectMentionUser}
             selectedMentionUsers={selectedMentionUsers}
           />

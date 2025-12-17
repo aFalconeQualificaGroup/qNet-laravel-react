@@ -12,10 +12,10 @@ type CalendarCompactProps = {
     label?: string;
 };
 
-export const CalendarCompact: React.FC<CalendarCompactProps> = ({ 
-    value, 
-    onChange, 
-    label = "Data" 
+export const CalendarCompact: React.FC<CalendarCompactProps> = ({
+    value,
+    onChange,
+    label = "Data"
 }) => {
     const [open, setOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date | null>(value ? new Date(value) : null);
@@ -144,12 +144,12 @@ export const CalendarCompact: React.FC<CalendarCompactProps> = ({
                         <h4 className="text-xs font-bold text-muted-foreground mb-1">RAPIDO</h4>
                         <div className="space-y-1">
                             {QUICK_DATE_OPTIONS.map((option) => (
-                                <Button 
+                                <Button
                                     key={option.id}
-                                    type="button" 
-                                    onClick={() => selectQuick(option.id)} 
-                                    variant="outline" 
-                                    size="sm" 
+                                    type="button"
+                                    onClick={() => selectQuick(option.id)}
+                                    variant="outline"
+                                    size="sm"
                                     className="quick-btn w-full justify-start text-xs"
                                 >
                                     {option.icon} {option.label}

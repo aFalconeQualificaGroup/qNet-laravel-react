@@ -10,9 +10,9 @@ import { TaskTypeButton } from "./task-type-button";
 import { Subtask, SubtaskManagerProps } from "./types";
 import { TASK_TYPES, PRIORITIES } from "./constants";
 
-export const SubtaskManager: React.FC<SubtaskManagerProps> = ({ 
-    subtasks, 
-    onChange, 
+export const SubtaskManager: React.FC<SubtaskManagerProps> = ({
+    subtasks,
+    onChange,
     users,
     onFilterUsers
 }) => {
@@ -67,7 +67,7 @@ export const SubtaskManager: React.FC<SubtaskManagerProps> = ({
     const handleUpdate = () => {
         if (!currentSubtask.title.trim() || !editingId) return;
 
-        const updatedSubtasks = subtasks.map(st => 
+        const updatedSubtasks = subtasks.map(st =>
             st.id === editingId ? { ...currentSubtask, id: editingId } : st
         );
 
@@ -119,8 +119,8 @@ export const SubtaskManager: React.FC<SubtaskManagerProps> = ({
                             .join(", ");
 
                         return (
-                            <Card 
-                                key={subtask.id} 
+                            <Card
+                                key={subtask.id}
                                 className={`p-3 ${subtask.is_completed ? 'opacity-60 bg-muted' : ''}`}
                             >
                                 <div className="flex items-start gap-3">
@@ -211,9 +211,9 @@ export const SubtaskManager: React.FC<SubtaskManagerProps> = ({
                     <div className="space-y-3">
                         {/* Riga principale */}
                         <div className="flex gap-2 items-center">
-                            <TaskTypeButton 
-                                value={currentSubtask.task_type} 
-                                onToggle={handleTaskTypeToggle} 
+                            <TaskTypeButton
+                                value={currentSubtask.task_type}
+                                onToggle={handleTaskTypeToggle}
                             />
 
                             <Input
@@ -225,35 +225,35 @@ export const SubtaskManager: React.FC<SubtaskManagerProps> = ({
                                 autoFocus
                             />
 
-                            <CalendarCompact 
-                                value={currentSubtask.due_date} 
-                                onChange={(iso) => setField("due_date", iso)} 
-                                label="Data scadenza" 
+                            <CalendarCompact
+                                value={currentSubtask.due_date}
+                                onChange={(iso) => setField("due_date", iso)}
+                                label="Data scadenza"
                             />
 
-                            <PrioritySelector 
-                                value={currentSubtask.priority} 
-                                onChange={(v) => setField("priority", v)} 
+                            <PrioritySelector
+                                value={currentSubtask.priority}
+                                onChange={(v) => setField("priority", v)}
                                 open={showPriorityDropdown}
                                 onOpenChange={setShowPriorityDropdown}
                             />
 
-                            <UserDropdown 
-                                users={users} 
-                                value={currentSubtask.assignee_ids} 
-                                onChange={(v) => setField("assignee_ids", v)} 
-                                title="Assegnatari" 
-                                setFilter={onFilterUsers} 
-                                icon="👥" 
+                            <UserDropdown
+                                users={users}
+                                value={currentSubtask.assignee_ids}
+                                onChange={(v) => setField("assignee_ids", v)}
+                                title="Assegnatari"
+                                setFilter={onFilterUsers}
+                                icon="👥"
                             />
 
-                            <UserDropdown 
-                                users={users} 
-                                value={currentSubtask.observer_ids} 
-                                onChange={(v) => setField("observer_ids", v)} 
-                                title="Osservatori" 
-                                setFilter={onFilterUsers} 
-                                icon="👁️" 
+                            <UserDropdown
+                                users={users}
+                                value={currentSubtask.observer_ids}
+                                onChange={(v) => setField("observer_ids", v)}
+                                title="Osservatori"
+                                setFilter={onFilterUsers}
+                                icon="👁️"
                             />
                         </div>
 

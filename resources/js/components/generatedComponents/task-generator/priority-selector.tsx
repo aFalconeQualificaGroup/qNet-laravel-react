@@ -11,11 +11,11 @@ type PrioritySelectorProps = {
     onOpenChange: (open: boolean) => void;
 };
 
-export const PrioritySelector: React.FC<PrioritySelectorProps> = ({ 
-    value, 
-    onChange, 
-    open, 
-    onOpenChange 
+export const PrioritySelector: React.FC<PrioritySelectorProps> = ({
+    value,
+    onChange,
+    open,
+    onOpenChange
 }) => {
     const currentPriority = PRIORITIES.find((p) => p.id === value);
 

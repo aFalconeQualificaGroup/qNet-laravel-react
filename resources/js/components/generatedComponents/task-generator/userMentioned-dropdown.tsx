@@ -15,8 +15,8 @@ type UserMentionedDropdownProps = {
     setFilter?: (v: string) => void;
 };
 
-export const UserMentionedDropdown: React.FC<UserMentionedDropdownProps> = ({ 
-    users, 
+export const UserMentionedDropdown: React.FC<UserMentionedDropdownProps> = ({
+    users,
     onSelectUser,
     selectedUsers = [],
     open,
@@ -81,7 +81,7 @@ export const UserMentionedDropdown: React.FC<UserMentionedDropdownProps> = ({
                     <X className="h-4 w-4" />
                 </Button>
             </div>
-            
+
             {/* Lista utenti */}
             <div className="max-h-[280px] overflow-y-auto">
                 {filteredUsers?.length === 0 ? (
@@ -92,7 +92,7 @@ export const UserMentionedDropdown: React.FC<UserMentionedDropdownProps> = ({
                     <div className="p-2">
                         {filteredUsers?.map((user) => {
                             const isSelected = selectedUsers.includes(user.id);
-                            
+
                             return (
                                 <button
                                     key={user.id}

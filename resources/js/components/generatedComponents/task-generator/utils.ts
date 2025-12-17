@@ -2,22 +2,22 @@
 
 export const fmtDateHuman = (d: Date | null): string => {
     if (!d) return "";
-    return d.toLocaleString("it-IT", { 
-        day: "2-digit", 
-        month: "2-digit", 
-        year: "numeric", 
-        hour: "2-digit", 
-        minute: "2-digit" 
+    return d.toLocaleString("it-IT", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
     });
 };
 
 export const formatDateParts = (date: string | null): { dateStr: string; timeStr?: string } => {
     if (!date) return { dateStr: "" };
     const d = new Date(date);
-    const dateStr = d.toLocaleDateString("it-IT", { 
-        day: "2-digit", 
-        month: "2-digit", 
-        year: "numeric" 
+    const dateStr = d.toLocaleDateString("it-IT", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
     });
 
     const hours = d.getHours();
@@ -85,7 +85,7 @@ export const getUserInitials = (name?: string, lastName?: string): string => {
     const surnameInitial = (lastName || "")
         .toUpperCase()
         .slice(0, 1);
-    
+
     return initials + (surnameInitial ? ' ' + surnameInitial : '');
 };
 

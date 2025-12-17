@@ -136,7 +136,7 @@ export const HierarchicalFilter: React.FC<Props> = ({ state, onChange }) => {
 
     const update = (field: keyof CollegatoAState, value: string) => {
         const newState = { ...state, [field]: value };
-        
+
         // Reset children when parent changes
         if (field === 'tipo') {
             newState.azienda = '';
@@ -170,12 +170,12 @@ export const HierarchicalFilter: React.FC<Props> = ({ state, onChange }) => {
                                 <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${state.tipo === t ? 'border-primary-500' : 'border-slate-300 group-hover:border-slate-400'}`}>
                                     {state.tipo === t && <div className="w-2 h-2 rounded-full bg-primary-500" />}
                                 </div>
-                                <input 
-                                    type="radio" 
-                                    name="tipo" 
-                                    className="hidden" 
-                                    checked={state.tipo === t} 
-                                    onChange={() => update('tipo', t)} 
+                                <input
+                                    type="radio"
+                                    name="tipo"
+                                    className="hidden"
+                                    checked={state.tipo === t}
+                                    onChange={() => update('tipo', t)}
                                 />
                                 <span className={`text-sm ${state.tipo === t ? 'text-slate-900 font-medium' : 'text-slate-600'}`}>{t}</span>
                             </label>
@@ -234,12 +234,12 @@ export const HierarchicalFilter: React.FC<Props> = ({ state, onChange }) => {
                                 <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${state.sottoTipo === t ? 'border-primary-500' : 'border-slate-300 group-hover:border-slate-400'}`}>
                                     {state.sottoTipo === t && <div className="w-2 h-2 rounded-full bg-primary-500" />}
                                 </div>
-                                <input 
-                                    type="radio" 
-                                    name="sottoTipo" 
-                                    className="hidden" 
-                                    checked={state.sottoTipo === t} 
-                                    onChange={() => update('sottoTipo', t)} 
+                                <input
+                                    type="radio"
+                                    name="sottoTipo"
+                                    className="hidden"
+                                    checked={state.sottoTipo === t}
+                                    onChange={() => update('sottoTipo', t)}
                                 />
                                 <span className={`text-sm ${state.sottoTipo === t ? 'text-slate-900 font-medium' : 'text-slate-600'}`}>{t}</span>
                             </label>

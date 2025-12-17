@@ -16,18 +16,18 @@ type UserDropdownProps = {
     icon?: string;
 };
 
-export const UserDropdown: React.FC<UserDropdownProps> = ({ 
-    users, 
-    value, 
-    onChange, 
-    title = "Seleziona utenti", 
-    showRoleCompany = true, 
-    setFilter, 
-    icon 
+export const UserDropdown: React.FC<UserDropdownProps> = ({
+    users,
+    value,
+    onChange,
+    title = "Seleziona utenti",
+    showRoleCompany = true,
+    setFilter,
+    icon
 }) => {
     const [open, setOpen] = useState(false);
     const [searchValue, setSearchValue] = useState("");
-   
+
     const toggle = (id: number) => {
         onChange(value.includes(id) ? value.filter((i) => i !== id) : [...value, id]);
     };
@@ -61,12 +61,12 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({
             </PopoverTrigger>
             <PopoverContent className="w-72 p-0 shadow-xl" align="end">
                 <div className="p-3 border-b bg-muted">
-                    <Input 
-                        placeholder="Cerca..." 
-                        value={searchValue} 
-                        onChange={handleSearchChange} 
-                        className="text-sm modern-input" 
-                        autoFocus 
+                    <Input
+                        placeholder="Cerca..."
+                        value={searchValue}
+                        onChange={handleSearchChange}
+                        className="text-sm modern-input"
+                        autoFocus
                     />
                 </div>
 

@@ -22,16 +22,16 @@ export interface Board {
 export function getDeadlineDates() {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  
+
   // Fine settimana (domenica)
   const endOfWeek = new Date(today);
   const dayOfWeek = endOfWeek.getDay();
   const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
   endOfWeek.setDate(endOfWeek.getDate() + daysUntilSunday);
-  
+
   // Fine mese
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  
+
   return {
     today,
     endOfWeek,
@@ -44,33 +44,33 @@ export function getDeadlineDates() {
  */
 export function getColumnForDueDate(dueDate: string | null | undefined): KanbanColumn['id'] {
   if (!dueDate) return 'month'; // Default se non ha data
-  
+
   const due = new Date(dueDate);
   const { today, endOfWeek, endOfMonth } = getDeadlineDates();
-  
+
   // Normalizza le date per confronto (solo giorno, senza ora)
   const dueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate());
-  
+
   // Scaduto
   if (dueDay < today) {
     return 'overdue';
   }
-  
+
   // Scade oggi
   if (dueDay.getTime() === today.getTime()) {
     return 'today';
   }
-  
+
   // Scade nella settimana
   if (dueDay <= endOfWeek) {
     return 'week';
   }
-  
+
   // Scade nel mese
   if (dueDay <= endOfMonth) {
     return 'month';
   }
-  
+
   // Oltre il mese
   return 'month';
 }

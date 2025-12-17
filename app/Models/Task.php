@@ -269,7 +269,7 @@ class Task extends Model
     {
         return $this->hasOne(Report::class);
     }
-    
+
     public function osservatore()
     {
         return $this->hasOne(User::class, 'id', 'observer');

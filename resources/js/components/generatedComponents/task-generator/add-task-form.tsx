@@ -21,20 +21,20 @@ import { AddTaskProps, Commessa } from "./types";
 import { TASK_TYPES, PRIORITIES, FILTER_STATUS_OPTIONS } from "./constants";
 import { Editor } from "@/components/blocks/editor-full/editor";
 
-export const AddTaskForm: React.FC<AddTaskProps> = ({ 
-    onSubmit, 
-    onReset, 
-    repeatConfig, 
-    onChangeConfig, 
-    form, 
-    handleFormDataChange, 
-    users, 
-    clients, 
-    commesse_client, 
-    opportunitys_client, 
-    contacts_client  
+export const AddTaskForm: React.FC<AddTaskProps> = ({
+    onSubmit,
+    onReset,
+    repeatConfig,
+    onChangeConfig,
+    form,
+    handleFormDataChange,
+    users,
+    clients,
+    commesse_client,
+    opportunitys_client,
+    contacts_client
 }) => {
-   
+
     const setField = <K extends keyof typeof form>(key: K, value: typeof form[K]) => handleFormDataChange(key, value);
     const addMentionedUser = (userId: number) => {handleFormDataChange("notes.mention", userId), console.log("Aggiunto utente menzionato:", userId);};
     const addNotesContent = (content: string) => {handleFormDataChange("notes.content", content); console.log("Aggiornato contenuto note:", content);};
@@ -67,7 +67,7 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
 
     useEffect(() => {
         setExpandedSections(prev => ({ ...prev, ripeti: form.repeat_task }));
-        
+
         if (!form.description) {
             setShowDescriptionInput(false);
         }
@@ -155,7 +155,7 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
 
     const commesseCount = mappedCommesse.filter(c => c.client_id === parseInt(form.client_id || "0")).length;
     const opportunitaCount = opportunitys_client?.length || 0;
-    
+
     const handleTaskTypeToggle = () => {
         const currentIndex = TASK_TYPES.findIndex((t) => t.id === form.task_type);
         const nextIndex = (currentIndex + 1) % TASK_TYPES.length;
@@ -220,31 +220,31 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                                 )}
                             </div>
 
-                            <PrioritySelector 
-                                value={form.priority} 
-                                onChange={(v) => setField("priority", v)} 
+                            <PrioritySelector
+                                value={form.priority}
+                                onChange={(v) => setField("priority", v)}
                                 open={showPriorityDropdown}
                                 onOpenChange={setShowPriorityDropdown}
                             />
 
                             {/* Assegnatari */}
-                            <UserDropdown 
-                                users={users} 
-                                value={form.assignee_ids} 
-                                onChange={(v) => setField("assignee_ids", v)} 
-                                title="Assegnatari" 
-                                setFilter={setUsersFilterValue} 
-                                icon="👥" 
+                            <UserDropdown
+                                users={users}
+                                value={form.assignee_ids}
+                                onChange={(v) => setField("assignee_ids", v)}
+                                title="Assegnatari"
+                                setFilter={setUsersFilterValue}
+                                icon="👥"
                             />
 
                             {/* Osservatori */}
-                            <UserDropdown 
-                                users={users} 
-                                value={form.observer_ids} 
-                                onChange={(v) => setField("observer_ids", v)} 
-                                title="Osservatori" 
-                                setFilter={setUsersFilterValue} 
-                                icon="👁️" 
+                            <UserDropdown
+                                users={users}
+                                value={form.observer_ids}
+                                onChange={(v) => setField("observer_ids", v)}
+                                title="Osservatori"
+                                setFilter={setUsersFilterValue}
+                                icon="👁️"
                             />
                         </div>
 
@@ -277,7 +277,7 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                         )}
 
                         {/* PREVIEW */}
-                        <TaskPreview 
+                        <TaskPreview
                             form={form}
                             users={users}
                             onTaskTypeClick={handleTaskTypeToggle}
@@ -300,7 +300,7 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                                 sottoattivita: 'Sottoattività',
                                 note: 'Note'
                             };
-                            
+
                             return (
                                 <Button
                                     key={section}
@@ -362,7 +362,7 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                                         <span>🔗</span>
                                         <span>COLLEGATO A</span>
                                     </div>
-                                    
+
                                     <div className="flex items-center justify-between mb-2">
                                         <div className="flex gap-1">
                                             <Button
@@ -460,7 +460,7 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                             </div>
                         </div>
                     )}
-                    
+
                     {/* RIPETI */}
                     {expandedSections.ripeti && expandedSections.altro && (
                         <div className="border rounded-lg p-4 bg-muted fade-in">
@@ -549,7 +549,7 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                             <div className="w-full flex flex-col gap-4">
                                 <Label className="text-sx text-muted-foreground m-1">Aggiungi note</Label>
                                 {/* Implementiamo il componente per la creazione note con funzionalita di rich text e mentions */}
-                                
+
                                 <Editor
                                     onSerializedChange={
                                         (value) => {
@@ -572,7 +572,7 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                                     onCloseMentions={() => setShowMentionDropdown(false)}
                                     onFilterMentionUsers={setUsersFilterValue}
                                 />
-                                
+
                             </div>
                         </div>
                     )}
