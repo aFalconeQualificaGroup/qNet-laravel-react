@@ -33,25 +33,78 @@ class AgGridController extends Controller
                 continue;
             }
 
+            $field_name = $field->text;
+            if ($entity == 'tasks') {
+                if ($field_name == 'customer_id') {
+                    $field_name = 'company_name';
+                }
+                elseif ($field_name == 'order_id') {
+                    $field_name = 'order_title';
+                }
+                elseif ($field_name == 'opportunity_id') {
+                    $field_name = 'opportunity_title';
+                }
+            }
+
+            $cellEditor = 'agTextCellEditor';
+
+            if ($model_columns[$field->text]['type'] == 'set') {
+                $cellEditor = 'agRichSelectCellEditor';
+            }
+            elseif ($model_columns[$field->text]['type'] == 'date') {
+                $cellEditor = 'agDateStringCellEditor';
+            }
+
+            $filter = false;
+            $filterParams = [];
+
+            if ($model_columns[$field->text]['filterable']) {
+                $filterParams = [
+                    'buttons' => ['reset'],
+                    'filterOptions' => ['contains', 'notContains', 'equals', 'notEqual', 'startsWith', 'endsWith', 'blank'],
+                    'maxNumConditions' => 1,
+                    'debounceMs' => 1000,
+                ];
+
+                if ($model_columns[$field->text]['type'] == 'set') {
+                    $filter = 'agSetColumnFilter';
+
+                    $filterParams['values'] = $model_columns[$field->text]['values'];
+
+                    $filterParams['defaultToNothingSelected'] = true;
+                }
+                elseif ($model_columns[$field->text]['type'] == 'date' || $model_columns[$field->text]['type'] == 'datetime') {
+                    $filter = 'agDateColumnFilter';
+
+                    $filterParams['filterOptions'] = ['equals', 'notEqual', 'lessThan', 'greaterThan', 'inRange', 'blank'];
+                }
+                else {
+                    $filter = 'agTextColumnFilter';
+                }
+            }
+
             $columnDefs[] = [
                 'hide' => ($field->visible) ? false : true,
                 'suppressMovable' => false,
                 'lockVisible' => false,
+                'cellEditor' => $cellEditor,
                 'cellEditorPopup' => true,
                 'suppressHeaderMenuButton' => false,
                 'name' => $field->text,
                 'headerName' => trans('dictionary.' . $field->text_visible),
                 'headerTooltip' => trans('dictionary.' . $field->text_visible),
-                'field' => $field->text,
-                'editable' => false,
-                'filter' => false,
-                'sortable' => true,
+                'field' => $field_name,
+                'editable' => $model_columns[$field->text]['editable'],
+                'filter' => $filter,
+                'filterParams' => $filterParams,
+                'sortable' => $model_columns[$field->text]['sortable'],
                 'width' => ($field->width) ? $field->width : 100,
             ];
         }
 
         return response()->json([
             'settings' => [
+                'components' => [],
                 'rowSelection' => [
                     'mode' => 'multiRow',
                 ],
@@ -146,6 +199,18 @@ class AgGridController extends Controller
         }
     }
 
+    public function updateColumnValue(Request $request)
+    {
+        $entity = $request->input('entity');
+        $value = $request->input('value');
+        $field = $request->input('field');
+        $id = $request->input('id');
+
+        if ($entity == 'tasks') {
+            TasksHelper::updateValue($value, $field, $id);
+        }
+    }
+
     public function saveColumns($entity, $model_columns)
     {
         $cols = FieldsTable::where('controller', $entity)
@@ -158,7 +223,7 @@ class AgGridController extends Controller
             foreach ($cols_mancanti as $column) {
                 FieldsTable::create([
                     'text'=> $column,
-                    'text_visible' => $model_columns[$column],
+                    'text_visible' => $model_columns[$column]['text'],
                     'controller' => $entity,
                     'id_user' => Auth::id(),
                     'visible' => 1,

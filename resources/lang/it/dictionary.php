@@ -684,8 +684,6 @@
                 'corso_richiesto' => 'Corso richiesto',
                 'id_corso' => 'ID Corso',
                 'codice_presentazione_sd' => 'Codice Presentazione SD',
-
-
                 'numero' => 'Numero',
                 'numprotinterno' => 'Num Prot. Interno',
                 'scostamento' => 'Scostamento',
@@ -699,7 +697,6 @@
                 'pagamento' => 'Pagamento',
                 'date_proforma' => 'Data Proforma',
                 'date_inserimento' => "Data Inserimento",
-
                 'order_title' => 'Titolo Commesse',
                 'service_title' => 'Spesa',
                 'iban' => 'Iban',
@@ -707,6 +704,6 @@
                 'proforma_num' => 'Num. Proforma',
                 'proforma_data' => 'Data Proforma',
                 'proforma_totale' => 'Totale',
-                'quotation_id' => 'ID Offerta'
-
+                'quotation_id' => 'ID Offerta',
+                'collegato_a' => 'Collegata a',
         ];
