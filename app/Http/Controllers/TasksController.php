@@ -779,4 +779,47 @@ class TasksController extends Controller
         
        //return back()->with('error', 'Errore durante l\'aggiornamento dello stato del filtro preferito.');
     }
+<<<<<<< HEAD
 }
+=======
+
+    public function saveUserTasksFilter(Request $request)
+    {   
+
+        if($request->has('id')){
+           $filterId = $request->input('id');
+           if($filterId){
+                $filterNewValue = [
+                    'filters' => $request->input('filters'),
+                    'collegatoA' => $request->input('collegatoA'),
+                    'searchText' => $request->input('searchText'),
+                    'name' => $request->input('name'),
+                    'description' => $request->input('description'),
+                    'is_favorite' => $request->input('is_favorite', false),
+                ];
+                // qui recuperi il filtro esistente dal database e lo aggiorni con i dati di $filterNewValue
+
+                return back()->with('success', 'Filtro aggiornato con successo!');
+           }    
+        }
+
+        $newFilter = [
+            'filters' => $request->input('filters'),
+            'collegatoA' => $request->input('collegatoA'),
+            'searchText' => $request->input('searchText'),
+            'name' => $request->input('name'),
+            'description' => $request->input('description'),
+            'is_favorite' => $request->input('is_favorite', false),
+        ];
+
+        // qui salvi $newFilter nel database associandolo all'utente corrente
+
+        /* Esempio di risposta dopo aver salvato il filtro dell' utente */
+        return back()->with('success', 'Filtro creato con successo!');
+       
+        //return back()->with('error', 'Errore durante la creazione del filtro.');
+        
+    }
+}   
+
+>>>>>>> dev
