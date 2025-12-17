@@ -772,4 +772,11 @@ class TasksController extends Controller
 
         return $savedFilters;
     }
-}   
+
+    public function updateFavoriteFilterStatus(Request $request, $filterId)
+    {
+       return back()->with('success', 'Stato del filtro preferito aggiornato con successo!');
+        
+       //return back()->with('error', 'Errore durante l\'aggiornamento dello stato del filtro preferito.');
+    }
+}
