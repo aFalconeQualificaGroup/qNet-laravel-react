@@ -1,6 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { CollegatoAState, MOCK_DATA } from './types';
 import { Select } from './UI';
+import { ClientDropdown } from '../generatedComponents/task-generator/client-dropdown';
+import { usePage, router } from '@inertiajs/react';
+import { User } from 'lucide-react';
+import { UserDropdown } from '../generatedComponents/task-generator';
+import { toast } from 'sonner';
+import { OrderSelector } from './OrderSelector';
 
 interface Props {
     state: CollegatoAState;
@@ -9,9 +15,128 @@ interface Props {
 
 export const HierarchicalFilter: React.FC<Props> = ({ state, onChange }) => {
     
+    const { props } = usePage<{ 
+        clientsForAdvancedFilter: { id: number; name: string }[];
+        userForAdvancedFilter: { id: number; name: string }[];
+        ordersForAdvancedFilter: { data: { id: number; title: string }[]; current_page: number; last_page: number; per_page: number; total: number } | null;
+        opportunitysForAdvancedFilter: { data: { id: number; title: string }[]; current_page: number; last_page: number; per_page: number; total: number } | null;
+    }>();
+    const clients = props.clientsForAdvancedFilter || [];
+    const users = props.userForAdvancedFilter || [];
+    
+    // State per accumulare i risultati paginati
+    const [accumulatedOrders, setAccumulatedOrders] = useState<{ id: number; title: string }[]>([]);
+    const [ordersPagination, setOrdersPagination] = useState<{ current_page: number; last_page: number; per_page: number; total: number } | null>(null);
+
+    const [accumulatedOpportunitys, setAccumulatedOpportunitys] = useState<{ id: number; title: string }[]>([]);
+    const [opportunitysPagination, setOpportunitysPagination] = useState<{ current_page: number; last_page: number; per_page: number; total: number } | null>(null);
+    
+    // Aggiorna gli ordini accumulati quando arrivano nuovi dati
+    useEffect(() => {
+        if (props.ordersForAdvancedFilter) {
+            const newData = props.ordersForAdvancedFilter;
+            
+            if (newData.current_page === 1) {
+                // Prima pagina: sostituisci tutto
+                setAccumulatedOrders(newData.data);
+            } else {
+                // Pagine successive: aggiungi ai risultati esistenti
+                setAccumulatedOrders(prev => [...prev, ...newData.data]);
+            }
+            
+            setOrdersPagination({
+                current_page: newData.current_page,
+                last_page: newData.last_page,
+                per_page: newData.per_page,
+                total: newData.total
+            });
+        }
+    }, [props.ordersForAdvancedFilter]);
+    
+    // Crea l'oggetto clientOrders con i dati accumulati
+    const clientOrders = ordersPagination ? {
+        data: accumulatedOrders,
+        current_page: ordersPagination.current_page,
+        last_page: ordersPagination.last_page,
+        per_page: ordersPagination.per_page,
+        total: ordersPagination.total
+    } : null;
+
+    const clientOpportunitys = opportunitysPagination ? {
+        data: accumulatedOpportunitys,
+        current_page: opportunitysPagination.current_page,
+        last_page: opportunitysPagination.last_page,
+        per_page: opportunitysPagination.per_page,
+        total: opportunitysPagination.total
+    } : null;
+  
+    const setClientsFilterValue = (search: string) => {
+        if (search.length < 3) return;
+        
+        router.reload({
+            only: ['clientsForAdvancedFilter'],
+            data: { search },
+        })
+    };
+
+    const setUsersFilterValue = (search: string) => {
+        if (search.length < 3) return;
+        
+        router.reload({
+            only: ['userForAdvancedFilter'],
+            data: { search },
+        });
+    }
+
+    const getClientOrders = (search: string = '', page: number = 1) => {
+        if(!state.azienda){
+            toast.error("Seleziona un'azienda per caricare le commesse.");
+            return;
+        }
+
+        router.reload({
+            only: ['ordersForAdvancedFilter'],
+            data: {
+                search: search,
+                client_id: state.azienda,
+                page: page
+            }
+        });
+    }
+
+    const getClientsOpportunitys = (search: string = '', page: number = 1) => {
+        if(!state.azienda){
+            toast.error("Seleziona un'azienda per caricare le opportunità.");
+            return;
+        }
+
+        router.reload({
+            only: ['opportunitysForAdvancedFilter'],
+            data: {
+                search: search,
+                client_id: state.azienda,
+                page: page
+            }
+        });
+    }
+
+    const loadMoreOpportunitys = (page: number) => {
+        getClientsOpportunitys('', page);
+    }
+
+    const loadMoreOrders = (page: number) => {
+        getClientOrders('', page);
+    }
+
+    useEffect(() => {
+        if(state.azienda){
+            getClientOrders('', 1);
+        }
+    }, [state.azienda]);
+
     const update = (field: keyof CollegatoAState, value: string) => {
         const newState = { ...state, [field]: value };
-        
+
         // Reset children when parent changes
         if (field === 'tipo') {
             newState.azienda = '';
@@ -45,12 +170,12 @@ export const HierarchicalFilter: React.FC<Props> = ({ state, onChange }) => {
                                 <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${state.tipo === t ? 'border-primary-500' : 'border-slate-300 group-hover:border-slate-400'}`}>
                                     {state.tipo === t && <div className="w-2 h-2 rounded-full bg-primary-500" />}
                                 </div>
-                                <input 
-                                    type="radio" 
-                                    name="tipo" 
-                                    className="hidden" 
-                                    checked={state.tipo === t} 
-                                    onChange={() => update('tipo', t)} 
+                                <input
+                                    type="radio"
+                                    name="tipo"
+                                    className="hidden"
+                                    checked={state.tipo === t}
+                                    onChange={() => update('tipo', t)}
                                 />
                                 <span className={`text-sm ${state.tipo === t ? 'text-slate-900 font-medium' : 'text-slate-600'}`}>{t}</span>
                             </label>
@@ -64,10 +189,15 @@ export const HierarchicalFilter: React.FC<Props> = ({ state, onChange }) => {
                         <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
                             Seleziona Azienda
                         </label>
-                        <Select
+                        
+                        <ClientDropdown
+                            clients={clients}
                             value={state.azienda}
-                            onChange={(val) => update('azienda', val)}
-                            options={[{ value: '', label: 'Seleziona...' }, ...MOCK_DATA.aziende.map(a => ({ value: a, label: a }))]}
+                            onChange={(v) => {
+                               update('azienda', v);
+                            }}
+                            onFilter={setClientsFilterValue}
+                            title="Seleziona azienda"
                         />
                     </div>
                 )}
@@ -78,10 +208,15 @@ export const HierarchicalFilter: React.FC<Props> = ({ state, onChange }) => {
                         <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
                             Seleziona Contatto
                         </label>
-                        <Select
+                        <ClientDropdown
+                            clients={users}
                             value={state.contatto}
-                            onChange={(val) => update('contatto', val)}
-                            options={[{ value: '', label: 'Seleziona...' }, ...MOCK_DATA.contatti.map(c => ({ value: c, label: c }))]}
+                            onChange={(v) => {
+                               update('contatto', v);
+                            }}
+                            onFilter={setUsersFilterValue}
+                            title="Seleziona contatto"
+                            icon={User}
                         />
                     </div>
                 )}
@@ -99,12 +234,12 @@ export const HierarchicalFilter: React.FC<Props> = ({ state, onChange }) => {
                                 <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${state.sottoTipo === t ? 'border-primary-500' : 'border-slate-300 group-hover:border-slate-400'}`}>
                                     {state.sottoTipo === t && <div className="w-2 h-2 rounded-full bg-primary-500" />}
                                 </div>
-                                <input 
-                                    type="radio" 
-                                    name="sottoTipo" 
-                                    className="hidden" 
-                                    checked={state.sottoTipo === t} 
-                                    onChange={() => update('sottoTipo', t)} 
+                                <input
+                                    type="radio"
+                                    name="sottoTipo"
+                                    className="hidden"
+                                    checked={state.sottoTipo === t}
+                                    onChange={() => update('sottoTipo', t)}
                                 />
                                 <span className={`text-sm ${state.sottoTipo === t ? 'text-slate-900 font-medium' : 'text-slate-600'}`}>{t}</span>
                             </label>
@@ -116,10 +251,14 @@ export const HierarchicalFilter: React.FC<Props> = ({ state, onChange }) => {
                              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
                                 Seleziona Commessa
                             </label>
-                            <Select
+                            <OrderSelector
+                                orders={clientOrders}
                                 value={state.commessa}
                                 onChange={(val) => update('commessa', val)}
-                                options={[{ value: '', label: 'Seleziona...' }, ...MOCK_DATA.commesse.map(c => ({ value: c, label: c }))]}
+                                onSearch={getClientOrders}
+                                onLoadMore={loadMoreOrders}
+                                label="Commesse disponibili"
+                                placeholder="Cerca commessa..."
                             />
                         </div>
                     )}
@@ -129,10 +268,14 @@ export const HierarchicalFilter: React.FC<Props> = ({ state, onChange }) => {
                              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
                                 Seleziona Opportunità
                             </label>
-                            <Select
+                            <OrderSelector
+                                orders={clientOpportunitys}
                                 value={state.opportunita}
                                 onChange={(val) => update('opportunita', val)}
-                                options={[{ value: '', label: 'Seleziona...' }, ...MOCK_DATA.opportunita.map(c => ({ value: c, label: c }))]}
+                                onSearch={getClientsOpportunitys}
+                                onLoadMore={loadMoreOpportunitys}
+                                label="Opportunità disponibili"
+                                placeholder="Cerca opportunità..."
                             />
                         </div>
                     )}

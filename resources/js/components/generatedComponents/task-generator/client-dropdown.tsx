@@ -16,14 +16,16 @@ type ClientDropdownProps = {
     onChange: (v: string) => void;
     onFilter?: (search: string) => void;
     title?: string;
+    icon?: React.ComponentType<{ className?: string }>;
 };
 
-export const ClientDropdown: React.FC<ClientDropdownProps> = ({ 
-    clients = [], 
-    value, 
-    onChange, 
+export const ClientDropdown: React.FC<ClientDropdownProps> = ({
+    clients = [],
+    value,
+    onChange,
     onFilter,
-    title = "Seleziona cliente" 
+    title = "Seleziona cliente",
+    icon: Icon = Building2
 }) => {
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState("");
@@ -47,7 +49,7 @@ export const ClientDropdown: React.FC<ClientDropdownProps> = ({
         setSearch("");
     };
 
-    const filteredClients = search 
+    const filteredClients = search
         ? clients.filter(c => c.name.toLowerCase().includes(search.toLowerCase()))
         : clients;
 
@@ -60,13 +62,13 @@ export const ClientDropdown: React.FC<ClientDropdownProps> = ({
                     size="sm"
                     className="rounded-button-sm border-2 hover:bg-accent w-full justify-start"
                 >
-                    <Building2 className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <Icon className="h-4 w-4 mr-2 shrink-0" />
                     <span className="flex-1 truncate text-left">
                         {selectedClient ? selectedClient.name : title}
                     </span>
                     {selectedClient && (
                         <X
-                            className="h-4 w-4 ml-2 flex-shrink-0 hover:text-destructive"
+                            className="h-4 w-4 ml-2 shrink-0 hover:text-destructive"
                             onClick={handleClear}
                         />
                     )}
@@ -92,7 +94,7 @@ export const ClientDropdown: React.FC<ClientDropdownProps> = ({
                     ) : (
                         filteredClients.map((client) => {
                             const isSelected = String(client.id) === value;
-                            
+
                             return (
                                 <button
                                     key={client.id}

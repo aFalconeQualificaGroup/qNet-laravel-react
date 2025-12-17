@@ -47,7 +47,7 @@ export const TaskRepeatForm: React.FC<TaskRepeatFormProps> = ({
     },
     [onChange]
   );
- 
+
   return (
     <div className={className}>
       <div className="space-y-1 mb-6">

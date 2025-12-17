@@ -9,6 +9,7 @@ use App\Models\TaskDocument;
 use App\Models\TaskObserver;
 use App\Models\TaskReminder;
 use App\Models\User;
+use App\Utils\TasksHelper;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,7 +48,7 @@ class TasksController extends Controller
             'reportmod',             // Report
             'taskReminder',          // Promemoria
         ])->paginate(15);
-        
+
         $year = $request->input('year');
         $date = $request->input('date');
         return Inertia::render("Tasks/Index", [
@@ -55,6 +56,13 @@ class TasksController extends Controller
             'tasksByDeadline' => Inertia::lazy(fn () => $this->getTasksByDeadlineData($year)),
             'tasksForCalendarView' => Inertia::lazy(fn () => $this->getTasksForCalendarView($date)),
             'tasksAgGridData' => Inertia::lazy( fn () => $this->getTasksAgGridConfig($request)),
+            'userForAdvancedFilter' => Inertia::lazy( fn () => $this->getUserForAdvancedFilter($request)),
+            'clientsForAdvancedFilter' => Inertia::lazy( fn () => $this->getClientsForAdvancedFilter($request)),
+            'ordersForAdvancedFilter' => Inertia::lazy( fn () => $this->getCommesseForClient($request)),
+            'opportunitysForAdvancedFilter' => Inertia::lazy( fn () => $this->getOpportunitysForClient($request)),
+            'assegnatariForAdvancedFilter' => Inertia::lazy( fn () => $this->getUserForAdvancedFilter($request)),
+            'osservatoriForAdvancedFilter' => Inertia::lazy( fn () => $this->getUserForAdvancedFilter($request)),
+            'userSavedFilters' => Inertia::lazy( fn () => $this->getUserSavedFilters($request)),
         ]);
     }
 
@@ -63,7 +71,6 @@ class TasksController extends Controller
      */
     public function create(Request $request)
     {
-        
         if ($request->has('search_users')) {
             $query = $request->input('search_users');
 
@@ -296,11 +303,11 @@ class TasksController extends Controller
     {
         try {
             $task = Task::findOrFail($id);
-            
+
             if ($request->has('endtask')) {
                 $task->endtask = $request->input("endtask");
             }
-            
+
             $task->save();
 
             return back()->with('success', 'Task aggiornato con successo!');
@@ -324,39 +331,189 @@ class TasksController extends Controller
         $start = $params['startRow'];
         $end = $params['endRow'];
 
-        $query = Task::with([
-            'customer',              // Cliente (Customer) - nome
-            'order',                 // Ordine - title
-            'orderMilestone',        // Milestone ordine - title
-            'opportunity',           // Opportunità - title
-            'lead',                  // Lead
-            'contact',               // Contatto
-            'assignedByUser',        // Utente che ha assegnato - name
-            'assignedToUser',        // Utente assegnato a - name
-            'area',                  // Area - nome
-            'site',                  // Sede cliente - address
-            'spazioAttivita',        // Spazio attività
-            'spazio',                // Spazio
-            'osservatore',           // Osservatore (User)
-            'assegnati',             // Utenti assegnati (TaskAssigned)
-            'taskdocumenti',         // Documenti task (TaskDocument)
-            'tasksubs',              // Sub-tasks (TaskSub)
-            'subtasks',              // Sottoattività (Task figli)
-            'parenttask',            // Task padre
-            'messaggiContestazione', // Messaggi contestazione
-            'operatori',             // Operatori
-            'reportmod',             // Report
-            'taskReminder',          // Promemoria
-        ]);
+        $query = Task::query();
 
-        $rowCount = $query->count();
+        $query->leftJoin('companies', 'tasks.customer_id', '=', 'companies.id');
+        $query->leftJoin('orders', 'tasks.order_id', '=', 'orders.id');
+        $query->leftJoin('opportunities', 'tasks.opportunity_id', '=', 'opportunities.id');
+        $query->leftJoin('task_assigneds', 'tasks.id', '=', 'task_assigneds.task_id');
+        $query->groupBy('tasks.id');
+
+        $query->where('typetask', '!=', 'O');
+        $query->where('parent_id', 0);
+
+        $model_columns = TasksHelper::getModelColumns();
+        unset($model_columns['collegato_a']);
+        $query->select(array_map(fn($valore) => 'tasks.' . $valore, array_keys($model_columns)));
+        $query->addSelect(['companies.name as company_name', 'orders.title as order_title', 'opportunities.title as opportunity_title']);
+
+        if (!empty($params['filterModel'])) {
+            foreach ($params['filterModel'] as $col => $filter) {
+                if ($col == 'id' || $col == 'title' || $col == 'status' || $col == 'assigned_by' || $col == 'datatask' || $col == 'timetask' || $col == 'timetaskend') {
+                    $col = 'tasks.' . $col;
+                }
+                elseif ($col == 'company_name') {
+                    $col = 'companies.name';
+                }
+                elseif ($col == 'order_title') {
+                    $col = 'orders.title';
+                }
+                elseif ($col == 'opportunity_title') {
+                    $col = 'opportunities.title';
+                }
+
+                if ($filter['filterType'] == 'text') {
+                    if ($filter['type'] == 'equals') {
+                        $query->where($col, $filter['filter']);
+                    }
+                    elseif ($filter['type'] == 'notEqual') {
+                        $query->where($col, '!=', $filter['filter']);
+                    }
+                    elseif ($filter['type'] == 'contains') {
+                        $query->where($col, 'LIKE', '%' . $filter['filter'] . '%');
+                    }
+                    elseif ($filter['type'] == 'notContains') {
+                        $query->where($col, 'NOT LIKE', '%' . $filter['filter'] . '%');
+                    }
+                    elseif ($filter['type'] == 'startsWith') {
+                        $query->where($col, 'LIKE', $filter['filter'] . '%');
+                    }
+                    elseif ($filter['type'] == 'endsWith') {
+                        $query->where($col, 'LIKE', '%' . $filter['filter']);
+                    }
+                    elseif ($filter['type'] == 'blank') {
+                        $query->whereRaw('COALESCE(' . $col . ', "") = ""');
+                    }
+                }
+                elseif ($filter['filterType'] == 'date') {
+                    if ($filter['type'] == 'equals') {
+                        $query->whereDate($col, $filter['dateFrom']);
+                    }
+                    elseif ($filter['type'] == 'notEqual') {
+                        $query->whereDate($col, '!=', $filter['dateFrom']);
+                    }
+                    elseif ($filter['type'] == 'lessThan') {
+                        $query->whereDate($col, '<=', $filter['dateFrom']);
+                    }
+                    elseif ($filter['type'] == 'greaterThan') {
+                        $query->whereDate($col, '>=', $filter['dateFrom']);
+                    }
+                    elseif ($filter['type'] == 'inRange') {
+                        $query->whereDate($col, '>=', $filter['dateFrom']);
+                        $query->whereDate($col, '<=', $filter['dateTo']);
+                    }
+                    elseif ($filter['type'] == 'blank') {
+                        $query->whereRaw('COALESCE(' . $col . ', "") = ""');
+                    }
+                }
+                elseif ($filter['filterType'] == 'set') {
+                    if ($col == 'assigned_to') {
+                        $col = 'task_assigneds.user_id';
+                    }
+
+                    $query->whereIn($col, $filter['values']);
+                }
+            }
+        }
+
+        if (!empty($params['sortModel'])) {
+            $query->orderBy($params['sortModel'][0]['colId'], $params['sortModel'][0]['sort']);
+        }
+
+        $rowCount = $query->get()->count();
 
         $tasks = $query->offset($start)->limit($end - $start)->get();
+
+        foreach ($tasks as $id => $task) {
+            $tasks[$id]->status = $this->formatTaskStatus($task->status, $task->contestata);
+            $tasks[$id]->typetask = $this->formatTypeTask($task->typetask);
+            $tasks[$id]->assigned_by = $this->formatAssignedBy($task->assigned_by);
+            $tasks[$id]->assigned_to = $this->formatAssignedTo($task);
+        }
 
         return [
             'rows' => $tasks,
             'rowCount' => $rowCount,
         ];
+    }
+
+    private function formatTaskStatus($status, $contestata)
+    {
+        $output = '';
+        if ($status == 2) {
+            $output = '<i title="Attività eseguita" class="bx bxs-check-circle text-green-600 bx-sm align-middle"></i>';
+        }
+        elseif ($status == 1 && $contestata == null) {
+            $output = '<i title="Contrassegna come completata" role="button" class="bx bx-check-circle bx-sm align-middle"></i>';
+        }
+        elseif ($status == 1 && $contestata == 1) {
+            $output = '<i title="Attività bloccata" class="bx bxs-check-circle text-red-600 bx-sm align-middle"></i>';
+        }
+
+        return $output;
+    }
+
+    private function formatTypeTask($typetask)
+    {
+        if ($typetask == 'I') {
+            return '<i title="Incontro" class="bx bx-group align-middle"></i>';
+        }
+        elseif ($typetask == 'T') {
+            return '<i title="Task" class="bx bx-task align-middle"></i>';
+        }
+        elseif ($typetask == 'C') {
+            return '<i class="bx bx-phone-call align-middle"></i>';
+        }
+    }
+
+    private function formatAssignedBy($assigned_by)
+    {
+        if ($assigned_by) {
+            return '<ul class="users-list flex items-center"><li class="avatar pull-up my-0" title="' . $this->userFull($assigned_by) . '"><span class="badge badge-circle white">' . $this->userInitial($assigned_by) . '</span></li></ul>';
+        }
+    }
+
+    private function formatAssignedTo($task)
+    {
+        if (!$task->operatori->isEmpty()) {
+            $output = '<ul class="users-list flex items-center">';
+            foreach ($task->operatori as $item) {
+                $output .= '<li class="avatar pull-up my-0" title="' . $item->UserTask . '"> <span class="badge badge-circle white badge-circle-sm">' . $this->userInitial($item->user_id) . '</span></li>';
+            }
+            $output .= '</ul>';
+
+            return $output;
+        }
+    }
+
+    private function userInitial($userId)
+    {
+        if (isset($this->users[$userId])) {
+            $user = $this->users[$userId];
+            return substr($user->name, 0, 1) . substr($user->last_name, 0, 1);
+        }
+        elseif ($user = User::find($userId)) {
+            $this->users[$userId] = $user;
+            return substr($user->name, 0, 1) . substr($user->last_name, 0, 1);
+        }
+        else {
+            return ' ';
+        }
+    }
+
+    private function userFull($userId)
+    {
+        if (isset($this->users[$userId])) {
+            $user = $this->users[$userId];
+            return $user->name . ' ' . $user->last_name;
+        }
+        elseif ($user = User::find($userId)) {
+            $this->users[$userId] = $user;
+            return $user->name . ' ' . $user->last_name;
+        }
+        else {
+            return ' ';
+        }
     }
 
     /**
@@ -499,4 +656,120 @@ class TasksController extends Controller
             'paginationPageSize' => 15,
         ];
     }
-}
+
+    private function getUserForAdvancedFilter(Request $request)
+    {
+        $serchParams = $request->input('search');
+        $query = User::query();
+
+        if ($serchParams) {
+            $query->where('name', 'like', "%{$serchParams}%")
+                  ->orWhere('email', 'like', "%{$serchParams}%")
+                  ->orWhere('last_name', 'like', "%{$serchParams}%");
+        }
+        
+        return $query->select('id', 'name')
+            ->limit(50)
+            ->get();
+    }
+
+    private function getClientsForAdvancedFilter(Request $request)
+    {
+        $searchParams = $request->input('search');
+        
+        $query = Company::query();
+        
+        if ($searchParams) {
+            $query->where('name', 'like', "%{$searchParams}%");
+        }
+        
+        return $query->select('id', 'name')
+            ->limit(50)
+            ->get();
+    }
+
+    private function getCommesseForClient(Request $request)
+    {
+        $searchParams = $request->input('search');
+        $clientId = $request->input('client_id');
+
+        $client = Company::find($clientId);
+
+        if (!$client) {
+            return [];
+        }
+
+        $query = $client->orders()->select('id', 'title');
+
+        if ($searchParams && $searchParams != '') {
+            $query->where('title', 'like', "%{$searchParams}%");
+        }
+
+        return $query->paginate(10);
+    }
+
+    private function getOpportunitysForClient(Request $request)
+    {
+        $searchParams = $request->input('search');
+        $clientId = $request->input('client_id');
+
+        $client = Company::find($clientId);
+
+        if (!$client) {
+            return [];
+        }
+
+        $query = $client->opportunity()->select('id', 'title');
+
+        if ($searchParams && $searchParams != '') {
+            $query->where('title', 'like', "%{$searchParams}%");
+        }
+
+        return $query->paginate(10);
+    }
+
+    private function getUserSavedFilters(Request $request)
+    {
+       $savedFilters = [
+           [
+               'id' => 1,
+               'name' => 'Task Urgenti Aperti',
+               'description' => 'Tutti i task con priorità urgente e stato aperto',
+               'filters' => json_encode([
+                   'statoAttivita' => ['conditions' => [['id' => '1', 'operator' => 'equals', 'values' => ['Aperto'], 'logic' => null]]],
+                   'priorita' => ['conditions' => [['id' => '3', 'operator' => 'equals', 'values' => ['Urgente'], 'logic' => null]]],
+               ]),
+               'collegatoA' => json_encode(['tipo' => 'Nessuno', 'azienda' => '', 'contatto' => '', 'sottoTipo' => 'Nessuno', 'commessa' => '', 'opportunita' => '']),
+               'searchText' => '',
+               'createdAt' => '2025-12-01T10:00:00.000Z',
+               'isFavorite' => true,
+           ],
+           [
+               'id' => 2,
+               'name' => 'Task Scadenza Oggi',
+               'description' => 'Task con scadenza odierna',
+               'filters' => json_encode([
+                   'dataScadenza' => ['conditions' => [['id' => '7', 'operator' => 'equals', 'values' => [date('Y-m-d')], 'logic' => null]]],
+               ]),
+               'collegatoA' => json_encode(['tipo' => 'Nessuno', 'azienda' => '', 'contatto' => '', 'sottoTipo' => 'Nessuno', 'commessa' => '', 'opportunita' => '']),
+               'searchText' => '',
+               'createdAt' => '2025-12-10T14:30:00.000Z',
+               'isFavorite' => false,
+           ],
+           [
+               'id' => 3,
+               'name' => 'Commesse Cliente XYZ',
+               'description' => 'Task collegati alle commesse del cliente XYZ',
+               'filters' => json_encode([
+                   'assegnatario' => ['conditions' => [['id' => '2', 'operator' => 'in', 'values' => ['1', '2'], 'logic' => null, 'users' => [['id' => 1, 'name' => 'Mario Rossi'], ['id' => 2, 'name' => 'Luigi Verdi']]]]],
+               ]),
+               'collegatoA' => json_encode(['tipo' => 'Azienda', 'azienda' => '5', 'contatto' => '', 'sottoTipo' => 'Commessa', 'commessa' => '12', 'opportunita' => '']),
+               'searchText' => '',
+               'createdAt' => '2025-12-15T09:15:00.000Z',
+               'isFavorite' => true,
+           ],
+       ];
+
+        return $savedFilters;
+    }
+}   

@@ -93,7 +93,7 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
             router.get(
                 tasksRoutes.create.url(),
                 { selected_client: form.client_id },
-                { 
+                {
                     preserveState: true,
                     preserveScroll: true,
                     only: ['commesse_client', 'opportunitys_client', 'contacts_client'], // Ricarica solo questi dati
@@ -142,7 +142,7 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
                 const updatedMentions = currentMentions.includes(value)
                     ? currentMentions.filter(id => id !== value)
                     : [...currentMentions, value];
-                
+
                 return {
                     ...prevForm,
                     notes: {
@@ -153,7 +153,7 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
             });
             return;
         }
-        
+
         if( key === 'notes.content') {
             setForm(prevForm => ({
                 ...prevForm,
@@ -205,7 +205,7 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
             documents: undefined,
             subtasks: [],
         });
-        
+
         // Reset repeatConfig
         setRepeatConfig({
             repeatType: '',
@@ -249,18 +249,18 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
                 </CardHeader>
                 <CardContent>
                     <div className='w-full flex'>
-                        <AddTaskForm 
+                        <AddTaskForm
                             onSubmit={handleTaskSubmit}
                             onReset={handleReset}
-                            repeatConfig={repeatConfig} 
-                            onChangeConfig={handleTaskRepeatChange} 
-                            form={form} 
-                            handleFormDataChange={handleFormDataChange} 
+                            repeatConfig={repeatConfig}
+                            onChangeConfig={handleTaskRepeatChange}
+                            form={form}
+                            handleFormDataChange={handleFormDataChange}
                             users={filtered_users}
                             clients={filtered_clients}
                             commesse_client={commesse_client}
                             opportunitys_client={opportunitys_client}
-                            contacts_client={contacts_client} 
+                            contacts_client={contacts_client}
                         />
                     </div>
                 </CardContent>

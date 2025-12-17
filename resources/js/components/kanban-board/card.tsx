@@ -13,10 +13,10 @@ interface Props {
 
 function formatDate(dateString: string | undefined): string {
   if (!dateString) return '';
-  
+
   // Converti vari formati in Date
   let date: Date;
-  
+
   // Prova formato DD-MM-YYYY
   if (dateString.includes('-') && dateString.split('-')[0].length === 2) {
     const [day, month, year] = dateString.split('-');
@@ -25,21 +25,21 @@ function formatDate(dateString: string | undefined): string {
     // Formato ISO YYYY-MM-DD o altri
     date = new Date(dateString);
   }
-  
+
   // Verifica se la data è valida
   if (isNaN(date.getTime())) return dateString;
-  
+
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  
+
   const dateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const tomorrowDay = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
-  
+
   if (dateDay.getTime() === todayDay.getTime()) return 'Oggi';
   if (dateDay.getTime() === tomorrowDay.getTime()) return 'Domani';
-  
+
   return date.toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
@@ -78,13 +78,13 @@ export function Card({ card }: Props) {
             <Maximize2 className="h-3 w-3" />
           </Button>
         </div>
-        
+
         {card.description && (
           <div className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-2 line-clamp-2">
             {card.description}
           </div>
         )}
-        
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-muted-foreground mt-1 sm:mt-2 pt-1 sm:pt-2 border-t border-border gap-1 sm:gap-2">
           {card.dueDate && (
             <div className="flex items-center gap-1 min-w-0">
@@ -92,7 +92,7 @@ export function Card({ card }: Props) {
               <span className="truncate">{formatDate(card.dueDate)}</span>
             </div>
           )}
-          
+
           {card.assignee && (
             <div className="flex items-center gap-1 min-w-0">
               <User className="w-3 h-3 shrink-0" />
@@ -107,7 +107,7 @@ export function Card({ card }: Props) {
           <DialogHeader>
             <DialogTitle className="text-base sm:text-lg">{card.title}</DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-3 sm:space-y-4">
             {card.description && (
               <div>
@@ -115,7 +115,7 @@ export function Card({ card }: Props) {
                 <p className="text-xs sm:text-sm text-muted-foreground whitespace-pre-wrap">{card.description}</p>
               </div>
             )}
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {card.dueDate && (
                 <div>
@@ -126,7 +126,7 @@ export function Card({ card }: Props) {
                   </div>
                 </div>
               )}
-              
+
               {card.assignee && (
                 <div>
                   <h4 className="text-xs sm:text-sm font-semibold mb-1">Assegnato a</h4>

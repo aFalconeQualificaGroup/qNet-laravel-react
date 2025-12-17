@@ -67,10 +67,10 @@ export function TaskCalendar({ tasks: initialTasks }: TaskCalendarProps) {
 
   const events: CalendarEvent[] = useMemo(() => {
     console.log('📅 Parsing tasks for calendar:', tasks.length);
-    
+
     return tasks.map((task) => {
       let eventDate: Date;
-      
+
       try {
         if (task.endtask) {
           eventDate = new Date(task.endtask + 'T12:00:00');
@@ -80,7 +80,7 @@ export function TaskCalendar({ tasks: initialTasks }: TaskCalendarProps) {
           console.warn('⚠️ Task without date:', task.id);
           eventDate = new Date();
         }
-        
+
         if (isNaN(eventDate.getTime())) {
           console.warn('⚠️ Invalid date for task:', task.id, task.endtask);
           eventDate = new Date();
@@ -101,7 +101,7 @@ export function TaskCalendar({ tasks: initialTasks }: TaskCalendarProps) {
           priority: task.priority,
           description: task.description || undefined,
           customer: task.customer?.name,
-          assignee: task.assigned_to_user 
+          assignee: task.assigned_to_user
             ? `${task.assigned_to_user.name} ${task.assigned_to_user.last_name || ''}`
             : undefined,
         },
@@ -111,19 +111,19 @@ export function TaskCalendar({ tasks: initialTasks }: TaskCalendarProps) {
 
   const eventStyleGetter = (event: CalendarEvent) => {
     const status = event.resource?.status;
-    
+
     const statusColors: Record<number, { backgroundColor: string; color: string; borderColor: string }> = {
-      0: { 
+      0: {
         backgroundColor: '#3b82f6', // blue-500
         color: '#ffffff',
         borderColor: '#2563eb' // blue-600
       },
-      1: { 
+      1: {
         backgroundColor: '#f59e0b', // amber-500
         color: '#ffffff',
         borderColor: '#d97706' // amber-600
       },
-      2: { 
+      2: {
         backgroundColor: '#10b981', // green-500
         color: '#ffffff',
         borderColor: '#059669' // green-600
@@ -177,7 +177,7 @@ export function TaskCalendar({ tasks: initialTasks }: TaskCalendarProps) {
             className="w-full"
           />
         </div>
-        
+
         <Button
           onClick={handleTodayClick}
           variant="outline"
@@ -185,7 +185,7 @@ export function TaskCalendar({ tasks: initialTasks }: TaskCalendarProps) {
         >
           Torna a Oggi
         </Button>
-        
+
         <div className="text-sm text-muted-foreground">
           {tasks.length} task totali • {events.length} visualizzati
         </div>

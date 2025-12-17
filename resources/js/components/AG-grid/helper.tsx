@@ -66,7 +66,7 @@ export type OriginalTaskType = {
 type TaskDataParsingType = OriginalTaskType[];
 
 function TaskDataParsing(data: any[]) {
-    
+
     const formatDate = (dateString: string | null) => {
         if (!dateString) return '-';
         const date = new Date(dateString);

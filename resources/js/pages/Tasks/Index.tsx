@@ -91,7 +91,7 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
                             <TabsTrigger value="kanban">Kanban</TabsTrigger>
                             <TabsTrigger value="calendar">Calendario</TabsTrigger>
                         </TabsList>
-                    
+
                         <TabsContent value="table" className="space-y-4">
                             {settings && (
                                 <>
@@ -100,10 +100,10 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
                                     </div>
                                     <AGGridTable entity="tasks" settings={settings} />
                                 </>
-                                
+
                             )}
                         </TabsContent>
-                        
+
                         <TabsContent value="kanban">
                             <TasksKanbanBoard />
                         </TabsContent>
@@ -112,7 +112,7 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
                             <TaskCalendar tasks={tasks.data} />
                         </TabsContent>
 
-                        
+
                     </Tabs>
                 </CardContent>
             </Card>

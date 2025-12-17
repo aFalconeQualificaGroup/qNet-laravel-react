@@ -19,7 +19,7 @@ export function Column({ column }: Props) {
         maxHeight: '70vh'
       }}
     >
-      <div 
+      <div
         ref={setNodeRef}
         className="flex-1 flex flex-col overflow-hidden p-2 sm:p-4"
         style={{
@@ -28,7 +28,7 @@ export function Column({ column }: Props) {
         }}
       >
         <h2 className="text-base sm:text-lg font-bold mb-2 sm:mb-4 text-foreground shrink-0">{column.title}</h2>
-        
+
         <div className="flex-1 overflow-hidden overflow-y-scroll space-y-2 pr-1 sm:pr-2">
           {column.cards.map((card) => (
             <Card key={card.id} card={card} />

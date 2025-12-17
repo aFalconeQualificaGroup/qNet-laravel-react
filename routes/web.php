@@ -20,11 +20,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('tasks/rows', [App\Http\Controllers\TasksController::class, 'rows']);
 
     Route::resource("tasks", App\Http\Controllers\TasksController::class);
+    Route::post('tasks/save-user-tasks-filter', [App\Http\Controllers\TasksController::class, 'saveUserTasksFilter'])->name('tasks.saveUserTasksFilter');
+    Route::post('tasks/update-favorite-filter-status/{filterId}', [App\Http\Controllers\TasksController::class, 'updateFavoriteFilterStatus'])->name('tasks.updateFavoriteFilterStatus');
 
     Route::get('aggrid-settings', [App\Http\Controllers\AgGridController::class, 'settings']);
     Route::get('aggrid-update-columns-sort', [App\Http\Controllers\AgGridController::class, 'updateColumnsSort']);
     Route::get('aggrid-update-column-visible', [App\Http\Controllers\AgGridController::class, 'updateColumnVisible']);
     Route::post('aggrid-save-column-width', [App\Http\Controllers\AgGridController::class, 'saveColumnWidth']);
+    Route::get('aggrid-update-column-value', [App\Http\Controllers\AgGridController::class, 'updateColumnValue']);
 });
 
 require __DIR__.'/settings.php';
