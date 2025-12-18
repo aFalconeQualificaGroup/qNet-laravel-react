@@ -60,37 +60,33 @@ export default function Index({ tasks }: { tasks: TasksPagination }) {
     return (
         <>
             <Head title="Tasks" />
-            <Card className=' rounded-none border-0 '>
-                <CardHeader>
-                    <CardTitle>
-                        <div className='w-full flex justify-between items-center'>
-                            <div>
-                                Elenco Tasks
+            <Card className='rounded-none border-0'>
+                <CardContent>
+                    <Tabs defaultValue="table" value={activeTab} onValueChange={setActiveTab} className="w-full">
+                        {/* Header riga unica: Elenco Tasks | TabsList | Crea Nuovo Task */}
+                        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between w-full mb-4">
+                            {/* Left: Elenco Tasks (sempre visibile) */}
+                            <div className="flex items-center">
+                                <span className="font-semibold">Elenco Tasks</span>
                                 <span className="ml-2 text-sm font-normal text-muted-foreground">
                                     ({tasks.total} totali)
                                 </span>
                             </div>
-                            <div>
-                                <Link
-                                    href={tasksRoutes.create.url()}
-                                >
-                                    <Button
-                                        variant="default"
-                                    >
+                            {/* Center: TabsList sempre visibile */}
+                            <TabsList className="flex-1 flex justify-center">
+                                <TabsTrigger value="table">Tabella</TabsTrigger>
+                                <TabsTrigger value="kanban">Kanban</TabsTrigger>
+                                <TabsTrigger value="calendar">Calendario</TabsTrigger>
+                            </TabsList>
+                            {/* Right: Crea Nuovo Task */}
+                            <div className="flex items-center justify-end mt-2 md:mt-0">
+                                <Link href={tasksRoutes.create.url()}>
+                                    <Button variant="default">
                                         Crea Nuovo Task
                                     </Button>
                                 </Link>
                             </div>
                         </div>
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Tabs defaultValue="table" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                        <TabsList className="mb-4">
-                            <TabsTrigger value="table">Tabella</TabsTrigger>
-                            <TabsTrigger value="kanban">Kanban</TabsTrigger>
-                            <TabsTrigger value="calendar">Calendario</TabsTrigger>
-                        </TabsList>
 
                         <TabsContent value="table" className="space-y-4">
                             {settings && (
