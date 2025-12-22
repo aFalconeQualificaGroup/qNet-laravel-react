@@ -27,6 +27,11 @@ const mainNavItems: NavItem[] = [
         href: '/tasks',
         icon: Folder,
     },
+    {
+        title: 'Test',
+        href: '/test',
+        icon: Folder,
+    },
 ];
 
 const footerNavItems: NavItem[] = [

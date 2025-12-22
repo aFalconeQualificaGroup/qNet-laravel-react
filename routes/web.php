@@ -28,6 +28,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('aggrid-update-column-visible', [App\Http\Controllers\AgGridController::class, 'updateColumnVisible']);
     Route::post('aggrid-save-column-width', [App\Http\Controllers\AgGridController::class, 'saveColumnWidth']);
     Route::get('aggrid-update-column-value', [App\Http\Controllers\AgGridController::class, 'updateColumnValue']);
+
+    Route::resource("test", App\Http\Controllers\TestController::class);
+
+
 });
 
 require __DIR__.'/settings.php';
