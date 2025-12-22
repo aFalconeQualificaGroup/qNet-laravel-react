@@ -135,7 +135,7 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
         []
     );
 
-    const handleFormDataChange = (key: keyof TaskForm | "notes.mention" | "notes.content" | "notes.full_content", value: any) => {
+    const handleFormDataChange = (key: keyof TaskForm | "notes.mention" | "notes.content" | "notes.full_content" | "set_date", value: any) => {
         if (key === 'notes.mention') {
             setForm(prevForm => {
                 const currentMentions = prevForm.notes?.mention || [];
@@ -173,6 +173,19 @@ function Create({ filtered_users=[], filtered_clients=[], commesse_client=[], op
                     content: prevForm.notes?.content || "",
                     full_content: value,
                 },
+            }));
+            return;
+        }
+
+        if (key === 'set_date' && value) {
+            console.log('Selected due_date range:', value);
+            const startDate = value.startDate;
+            const endDate = value.endDate;
+
+            setForm(prevForm => ({
+                ...prevForm,
+                start_date: startDate || prevForm.start_date,
+                due_date: endDate || prevForm.due_date,
             }));
             return;
         }

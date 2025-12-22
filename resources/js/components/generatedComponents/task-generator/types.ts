@@ -39,7 +39,7 @@ export type AddTaskProps = {
     repeatConfig: Partial<TaskRepeatConfig>;
     onChangeConfig: (config: Partial<TaskRepeatConfig> | ((prev: Partial<TaskRepeatConfig>) => Partial<TaskRepeatConfig>)) => void;
     form: TaskForm;
-    handleFormDataChange: (key: keyof TaskForm | 'notes.mention' | 'notes.content' | 'notes.full_content', value: any) => void;
+    handleFormDataChange: (key: keyof TaskForm | 'notes.mention' | 'notes.content' | 'notes.full_content' | 'set_date', value: any) => void;
     users?: UserType['filtered_users'];
     clients?: UserType['filtered_clients'];
     commesse_client?: UserType['commesse_client'];

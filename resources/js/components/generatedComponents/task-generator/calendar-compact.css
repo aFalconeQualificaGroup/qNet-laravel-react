@@ -1,0 +1,76 @@
+.calendar-popup {
+  position: absolute;
+  right: 0;
+  z-index: 9999;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  overflow: hidden;
+  min-width: 380px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 11px;
+  transition: all 0.2s;
+}
+
+.calendar-day.today {
+  background: #fef3c7;
+  color: #d97706;
+  font-weight: bold;
+}
+
+.calendar-day.selected {
+  background: #3b82f6;
+  color: white;
+  font-weight: bold;
+}
+
+.quick-btn {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  width: 100%;
+  text-align: left;
+}
+
+.time-slot {
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: #f9fafb;
+  font-size: 10px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.time-slot.selected {
+  background: #3b82f6;
+  color: white;
+}
+
+.date-type-button {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  border: 1px solid #e5e7eb;
+  background: white;
+}
+
+.date-type-button.active {
+  background: #3b82f6;
+  color: white;
+}

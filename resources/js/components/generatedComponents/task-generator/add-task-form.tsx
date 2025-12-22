@@ -1,3 +1,12 @@
+// Utility per formattare la data/ora in modo leggibile
+function formatDateTime(date: string | Date | null) {
+    if (!date) return '';
+    const d = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(d.getTime())) return '';
+    // Formato: gg/MM/yy HH:mm
+    return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit' }) +
+        ' ' + d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+}
 // AddTaskForm - Componente principale per creazione task (refactored)
 import React, { useEffect, useState, useRef } from "react";
 import { TaskRepeatForm } from '@/components/generatedComponents/task-repeat';
@@ -9,7 +18,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import * as tasksRoutes from '@/routes/tasks';
 
-import { CalendarCompact } from "./calendar-compact";
+//import { CalendarCompact } from "./calendar-compact";
+import CalendarCompact from "@/components/generatedComponents/calendar-compact/CalendarCompact";
 import { UserDropdown } from "./user-dropdown";
 import { UserMentionedDropdown } from "./userMentioned-dropdown";
 import { ClientDropdown } from "./client-dropdown";
@@ -20,6 +30,7 @@ import { SubtaskManager } from "./subtask-manager";
 import { AddTaskProps, Commessa } from "./types";
 import { TASK_TYPES, PRIORITIES, FILTER_STATUS_OPTIONS } from "./constants";
 import { Editor } from "@/components/blocks/editor-full/editor";
+import CalendarCompactControlled from "./calendarCompactControlled";
 
 export const AddTaskForm: React.FC<AddTaskProps> = ({
     onSubmit,
@@ -35,7 +46,7 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
     contacts_client
 }) => {
 
-    const setField = <K extends keyof typeof form>(key: K, value: typeof form[K]) => handleFormDataChange(key, value);
+    const setField = (key: keyof typeof form | 'notes.mention' | 'notes.content' | 'notes.full_content' | 'set_date', value: any) => handleFormDataChange(key, value);
     const addMentionedUser = (userId: number) => {handleFormDataChange("notes.mention", userId), console.log("Aggiunto utente menzionato:", userId);};
     const addNotesContent = (content: string) => {handleFormDataChange("notes.content", content); console.log("Aggiornato contenuto note:", content);};
     const addNotesFullContent = (fullContent: string) => {handleFormDataChange("notes.full_content", fullContent); console.log("Aggiornato contenuto completo note:", fullContent);};
@@ -45,6 +56,7 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
     }, [form.notes?.mention]);
 
     // Stati UI
+    const [openCalendar, setOpenCalendar] = useState(false);
     const [titleFocused, setTitleFocused] = useState(false);
     const [showDescriptionInput, setShowDescriptionInput] = useState(false);
     const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
@@ -205,7 +217,33 @@ export const AddTaskForm: React.FC<AddTaskProps> = ({
                             />
 
                             <div className="relative flex items-center gap-1">
-                                <CalendarCompact value={form.due_date} onChange={(iso) => setField("due_date", iso)} label="Data scadenza" />
+                                {/*<CalendarCompact value={form.due_date} onChange={(iso) => setField("due_date", iso)} label="Data scadenza" /> */}
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="rounded-button-sm border-2 hover:bg-accent flex items-center h-10 px-4"
+                                        onClick={() => setOpenCalendar(true)}
+                                    >
+                                        <span className="text-lg" role="img" aria-label="calendar">📅</span>
+                                        <span className="ml-1 text-xs">
+                                            {form.start_date && form.due_date
+                                                ? `inizio: ${formatDateTime(form.start_date)} → fine: ${formatDateTime(form.due_date)}`
+                                                : form.start_date
+                                                    ? `inizio: ${formatDateTime(form.start_date)}`
+                                                    : 'Seleziona data'}
+                                        </span>
+                                    </Button>
+                                <CalendarCompact
+                                    isOpen={openCalendar}
+                                    onClose={() => setOpenCalendar(false)}
+                                    onSelectRange={(range) => {
+                                        setField("set_date", range);
+                                        setOpenCalendar(false);
+                                    }}
+                                    startDate={form.start_date}
+                                    endDate={form.due_date}
+                                />
                                 {form.due_date && (
                                     <Button
                                         type="button"
